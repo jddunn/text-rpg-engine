@@ -5,8 +5,34 @@ const newRoom = game.addRoom('Beginning', 'This is the beginning room');
 
 newRoom.addPrompt('look', ['look', 'examine'],
   {
-    'text': 'You see a room with a door to the left and a statue in the middle.'
+    'successText': 'You see a room with a door to the right and a statue in the middle.'
   }
+);
+
+newRoom.addPrompt('go right', ['go left', 'move right'],
+  {
+    'successText': 'You enter in the access code "14052" and successfully open the door..',
+    'failText': 'The door is locked with an access code!',
+    'roomToEnter': 'SecondRoom',
+    'itemsRequired': 'note'
+  }, 
+  ['note']
+);
+
+newRoom.addPrompt('get statue', ['get statue', 'pick up statue', 'take statue', 'pick statue up'], 
+  {
+    'successText': 'You pick up the statue. It feels heavy in your hands.',
+    'itemsGiven': 'statue'
+  }
+);
+
+newRoom.addPrompt('look', ['look at note', 'examine note', 'take note'],
+  {
+    'successText': 'You look at the note and find an access code: "14052."',
+    'failText': 'You have no note to look at!',
+    'itemsGiven': 'note'
+  },
+  ['statue']
 );
 
 game.init();
@@ -207,6 +233,8 @@ var _room = _interopRequireDefault(__webpack_require__(/*! ./room */ "./src/room
 
 var _inventory = _interopRequireDefault(__webpack_require__(/*! ./inventory */ "./src/inventory.js"));
 
+var _item = _interopRequireDefault(__webpack_require__(/*! ./item */ "./src/item.js"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -225,14 +253,16 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
+// import Item from './item';
 var Game =
 /*#__PURE__*/
 function () {
   function Game() {
     var datapath = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
     var rooms = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-    var startRoom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-    var endRoom = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+    var items = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+    var startRoom = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+    var endRoom = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
 
     _classCallCheck(this, Game);
 
@@ -240,7 +270,9 @@ function () {
     this.Input = new _input.default();
     this.datapath = datapath; // TODO: Be able to have game initialize data from JSON file
 
-    this.rooms = rooms; // All the rooms inside our game
+    this.rooms = rooms; // All the rooms in our game
+
+    this.items = items; // All the items in our game
 
     this.startRoom = startRoom; // Which room will the player start in
 
@@ -310,6 +342,30 @@ function () {
       return room;
     }
   }, {
+    key: "addItem",
+    value: function addItem(name, getText) {
+      var item = new _item.default(name, getText);
+      this.items.push(item);
+      return this.items;
+    }
+  }, {
+    key: "dropItem",
+    value: function dropItem(itemName) {
+      var newItems = this.items.filter(function (item) {
+        return item.name !== itemName;
+      });
+      this.items = newItems;
+      return this.items;
+    }
+  }, {
+    key: "getItem",
+    value: function getItem(itemName) {
+      var item = this.items.find(function (x) {
+        return x.name === itemName;
+      });
+      return item;
+    }
+  }, {
     key: "userSend",
     value: function userSend(message) {
       // Our Input class will handle cleaning / normalizing strings
@@ -321,66 +377,81 @@ function () {
     value: function decidePath(message) {
       if (message === 'restart') {
         this.resetGame();
-      } // Check to see if an item name was in the message
-      // if (message.split())
-
+      }
 
       var _this = this;
 
-      var currRoom = _this.getRoom(_this.Player.currentRoom);
+      var currRoom = _this.getRoom(_this.Player.currentRoom); // Do we have actions that we can do in the room?
+
 
       if (_typeof(currRoom.prompts) !== undefined) {
+        // Check every prompt action to see if it matches our input keywords
+        // For now just get the first matching prompt and do that
+        var foundPrompt = false;
         currRoom.prompts.forEach(function (prompt) {
-          var matchingPromptResults = prompt.matchKeywords(message);
+          if (foundPrompt === false) {
+            var matchingPromptResults = prompt.matchKeywords(message); // If we get a matching result back
 
-          if (matchingPromptResults !== null) {
-            // For now just get the first matching result and show that
-            // (only one prompt / action per message is sent is supported)
-            // console.log('FOUND MATCHING PROMPT RESULTS: ', matchingPromptResults);
-            _this.Display.show(matchingPromptResults.text); // Get items from prompt if any are found
-            // Merge the second array into the first one
+            if (matchingPromptResults !== null) {
+              foundPrompt = true;
 
-
-            if (matchingPromptResults.items !== undefined) {
-              Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.items);
-            } // Successful prompt leads to new room entrance (if defined in prompt)
+              if ('success' in matchingPromptResults) {
+                _this.Display.show(matchingPromptResults.success.successText); // Get items from prompt if any are found
 
 
-            if (matchingPromptResults.room !== undefined) {
-              _this.Player.currentRoom = matchingPromptResults.room; // Check to see if player's won
+                if (matchingPromptResults.success.itemsGiven !== undefined) {
+                  Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.success.itemsGiven);
+                } // Successful prompt leads to new room entrance (if defined in prompt)
 
-              var enterRoomResultSuccess;
-              var enterRoomResultText;
 
-              var _this$Player$enterRoo = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+                if (matchingPromptResults.success.roomToEnter !== undefined) {
+                  var enterRoomResultSuccess;
+                  var enterRoomResultText;
 
-              var _this$Player$enterRoo2 = _slicedToArray(_this$Player$enterRoo, 2);
+                  var _this$Player$enterRoo = _this.Player.enterRoom(this.getRoom(matchingPromptResults.success.roomToEnter));
 
-              enterRoomResultText = _this$Player$enterRoo2[0];
-              enterRoomResultSuccess = _this$Player$enterRoo2[1];
+                  var _this$Player$enterRoo2 = _slicedToArray(_this$Player$enterRoo, 2);
 
-              if (matchingPromptResults.room === _this.endRoom) {
-                if (enterRoomResultSuccess) {
-                  // Successfully entered room to win game
-                  _this.win();
-                } else {
-                  // Display results text (fail to enter winning room)
-                  _this.Display.append(enterRoomResultText);
-                }
+                  enterRoomResultText = _this$Player$enterRoo2[0];
+                  enterRoomResultSuccess = _this$Player$enterRoo2[1];
+
+                  // Check to see if player's won
+                  if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
+                    if (enterRoomResultSuccess) {
+                      // Successfully entered room to win game
+                      _this.win();
+                    } else {
+                      // Display results text (fail to enter winning room)
+                      _this.Display.append(enterRoomResultText);
+                    }
+                  }
+                } // return;
+
+              } // Failed to do prompt (missing item requirement)
+
+
+              if ('fail' in matchingPromptResults) {
+                console.log('fail is in matching prompt');
+
+                _this.Display.show("".concat(prompt.results.failMessage));
+
+                _this.Display.append("Missing required items: ".concat(matchingPromptResults.fail.toString()));
+
+                return;
               }
             }
           } else {
-            // Player didn't say any keywords that triggered any of the current room prompts
-            _this.Display.show("<p>No actions could be done from: \"".concat(message, "\". Try something else.</p>\n                              ").concat(_this.getRoom(_this.Player.currentRoom).getText, "\n          "));
-
-            return;
+            if (foundPrompt === false) {
+              // Player didn't say any keywords that triggered any of the current room prompts
+              _this.Display.show("<p>No actions could be done from: \"".concat(message, "\". Try something else.</p>\n            ").concat(_this.getRoom(_this.Player.currentRoom).getText, "\n          "));
+            }
           }
         });
       } else {
         // No prompts exist for the current room
-        _this.Display.show("<p>There doesn't seem to be any actions at all that you can do in this room.</p>\n                        ".concat(_this.getRoom(_this.Player.currentRoom).getText, "\n      "));
+        console.log('UNDEFINED PROMPTS');
 
-        return;
+        _this.Display.show("<p>There doesn't seem to be any actions at all that you can do in this room.</p>\n                        ".concat(_this.getRoom(_this.Player.currentRoom).getText, "\n      "));
       }
 
       console.log(message, this.Player);
@@ -401,7 +472,6 @@ function () {
       // Show final room text (win text)
       for (var i = 0; i < this.rooms.length; i++) {
         if (this.rooms[i].name === this.endRoom) {
-          // this.Display.show(this.rooms[i].getText);
           this.Display.append(this.rooms[i].getText);
           this.Display.append('<p>Game end.</p>');
         }
@@ -571,11 +641,6 @@ function () {
       });
     }
   }, {
-    key: "getItemProps",
-    value: function getItemProps(itemName) {
-      return this.items[itemName];
-    }
-  }, {
     key: "addItem",
     value: function addItem(item) {
       this.items.push(item);
@@ -596,6 +661,55 @@ function () {
 }();
 
 exports.default = Inventory;
+module.exports = exports["default"];
+
+/***/ }),
+
+/***/ "./src/item.js":
+/*!*********************!*\
+  !*** ./src/item.js ***!
+  \*********************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = void 0;
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
+
+function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
+
+var Item =
+/*#__PURE__*/
+function () {
+  function Item() {
+    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+    var getText = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+    _classCallCheck(this, Item);
+
+    this.name = name;
+    this.getText = getText; // Text displayed when item is gotten
+  }
+
+  _createClass(Item, [{
+    key: "get",
+    value: function get() {
+      return this.getText;
+    }
+  }]);
+
+  return Item;
+}();
+
+exports.default = Item;
 module.exports = exports["default"];
 
 /***/ }),
@@ -728,6 +842,7 @@ function () {
     var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
     var keywords = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
     var results = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+    var requirements = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
 
     _classCallCheck(this, Prompt);
 
@@ -736,25 +851,53 @@ function () {
     this.keywords = keywords.map(function (v) {
       return v.toLowerCase();
     }); // Results that occur when this prompt is successfully triggered; 
-    // the result keys comprise of “text” (required), “items” (optional),
-    // and “room (optional)” 
+    // the result keys comprise of “successText” (required), "failText" (optional),
+    // “itemsRequired” (optional), // and “roomToEnter"” 
 
-    this.results = results;
+    this.results = results; // Any pre-requistie items needed to do the prompt?
+
+    this.requirements = requirements;
   } // Check if input message matches any prompt keywords
 
 
   _createClass(Prompt, [{
     key: "matchKeywords",
     value: function matchKeywords(message) {
-      var found = false;
+      var items = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+      var foundKeyword = false;
+
+      if (this.requirements.length > 0) {
+        var missingRequirements = [];
+        this.requirements.forEach(function (requirement) {
+          var foundRequirement = false;
+          items.forEach(function (item) {
+            if (item === requirement) {
+              foundRequirement = true;
+            }
+          });
+
+          if (!foundRequirement) {
+            missingRequirements.push(requirement);
+          }
+        });
+
+        if (missingRequirements.length > 0) {
+          return {
+            'fail': missingRequirements
+          };
+        }
+      }
+
       this.keywords.forEach(function (keyword) {
         if (message.includes(keyword.toLowerCase())) {
-          found = true;
+          foundKeyword = true;
         }
       });
 
-      if (found) {
-        return this.results;
+      if (foundKeyword) {
+        return {
+          'success': this.results
+        };
       }
 
       return null;

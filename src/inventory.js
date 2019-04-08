@@ -15,10 +15,6 @@ export default class Inventory {
     return this.items.map(a => a.name);
   }
 
-  getItemProps(itemName) {
-    return this.items[itemName];
-  }
-
   addItem(item) {
     this.items.push(item);
     return this.items;

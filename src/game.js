@@ -3,14 +3,17 @@ import Input from './input';
 import Player from './player';
 import Room from './room';
 import Inventory from './inventory';
+import Item from './item';
+// import Item from './item';
 
 export default class Game {
 
-  constructor(datapath = '', rooms = [], startRoom = '', endRoom = '') {
+  constructor(datapath = '', rooms = [], items = [], startRoom = '', endRoom = '') {
     this.Display = new Display();
     this.Input = new Input();
     this.datapath = datapath; // TODO: Be able to have game initialize data from JSON file
-    this.rooms = rooms; // All the rooms inside our game
+    this.rooms = rooms; // All the rooms in our game
+    this.items = items; // All the items in our game
     this.startRoom = startRoom; // Which room will the player start in
     this.endRoom = endRoom; // Which room 
     // TODO: Allow players to give their characters their own names later
@@ -62,6 +65,25 @@ export default class Game {
     return room;
   }
 
+  addItem(name, getText) {
+    const item = new Item(name, getText);
+    this.items.push(item);
+    return this.items;
+  }
+
+  dropItem(itemName) {
+    let newItems = this.items.filter(function(item) {
+      return item.name !== itemName;
+    });
+    this.items = newItems;
+    return this.items;
+  }
+
+  getItem(itemName) {
+    const item = this.items.find(x => x.name === itemName);
+    return item;
+  }
+
   userSend(message) {
     // Our Input class will handle cleaning / normalizing strings
     this.Input.send(message);
@@ -72,57 +94,72 @@ export default class Game {
     if (message === 'restart') {
       this.resetGame();
     }
-    // Check to see if an item name was in the message
-    // if (message.split())
     const _this = this;
     const currRoom = _this.getRoom(_this.Player.currentRoom);
+
+    // Do we have actions that we can do in the room?
+  
     if (typeof currRoom.prompts !== undefined) {
+      // Check every prompt action to see if it matches our input keywords
+      // For now just get the first matching prompt and do that
+      let foundPrompt = false;
       currRoom.prompts.forEach(function (prompt) {
-        const matchingPromptResults = prompt.matchKeywords(message);
-        if (matchingPromptResults !== null) {
-          // For now just get the first matching result and show that
-          // (only one prompt / action per message is sent is supported)
-          // console.log('FOUND MATCHING PROMPT RESULTS: ', matchingPromptResults);
-          _this.Display.show(matchingPromptResults.text);
-          // Get items from prompt if any are found
-          // Merge the second array into the first one
-          if (matchingPromptResults.items !== undefined) {
-            Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.items);
-          }
-          // Successful prompt leads to new room entrance (if defined in prompt)
-          if (matchingPromptResults.room !== undefined) {
-            _this.Player.currentRoom = matchingPromptResults.room;
-            // Check to see if player's won
-            let enterRoomResultSuccess;
-            let enterRoomResultText;           
-            [enterRoomResultText, enterRoomResultSuccess] = 
-              _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
-            if (matchingPromptResults.room === _this.endRoom) {
-              if (enterRoomResultSuccess) {
-                // Successfully entered room to win game
-                _this.win();
-              } else {
-                // Display results text (fail to enter winning room)
-                _this.Display.append(enterRoomResultText);
+        if (foundPrompt === false) {
+          const matchingPromptResults = prompt.matchKeywords(message);
+          // If we get a matching result back
+          if (matchingPromptResults !== null) {
+            foundPrompt = true;
+            if ('success' in matchingPromptResults) {
+              _this.Display.show(matchingPromptResults.success.successText);
+              // Get items from prompt if any are found
+              if (matchingPromptResults.success.itemsGiven !== undefined) {
+                Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.success.itemsGiven);
               }
+              // Successful prompt leads to new room entrance (if defined in prompt)
+              if (matchingPromptResults.success.roomToEnter !== undefined) {
+                let enterRoomResultSuccess;
+                let enterRoomResultText;           
+                [enterRoomResultText, enterRoomResultSuccess] = 
+                      _this.Player.enterRoom(this.getRoom(matchingPromptResults.success.roomToEnter));
+                // Check to see if player's won
+                if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
+                  if (enterRoomResultSuccess) {
+                    // Successfully entered room to win game
+                    _this.win();
+                  } else {
+                    // Display results text (fail to enter winning room)
+                    _this.Display.append(enterRoomResultText);
+                  }
+                }
+              }
+              // return;
+            }
+            // Failed to do prompt (missing item requirement)
+            if ('fail' in matchingPromptResults) {
+              console.log('fail is in matching prompt');
+              _this.Display.show(`${prompt.results.failMessage}`);
+              _this.Display.append(`Missing required items: ${matchingPromptResults.fail.toString()}`);
+              return;
             }
           }
         } else {
-          // Player didn't say any keywords that triggered any of the current room prompts
-          _this.Display.show(`<p>No actions could be done from: "${message}". Try something else.</p>
-                              ${_this.getRoom(_this.Player.currentRoom).getText}
+          if (foundPrompt === false) {
+            // Player didn't say any keywords that triggered any of the current room prompts
+            _this.Display.show(`<p>No actions could be done from: "${message}". Try something else.</p>
+            ${_this.getRoom(_this.Player.currentRoom).getText}
           `);
-          return;
+          }
         }
       });
     } else {
       // No prompts exist for the current room
+      console.log('UNDEFINED PROMPTS');
       _this.Display.show(`<p>There doesn't seem to be any actions at all that you can do in this room.</p>
                         ${_this.getRoom(_this.Player.currentRoom).getText}
       `);
-      return;
     }
     console.log(message, this.Player);
+
   }
 
   disableInput() {
@@ -137,7 +174,6 @@ export default class Game {
     // Show final room text (win text)
     for (let i = 0; i < this.rooms.length; i++) {
       if (this.rooms[i].name === this.endRoom) {
-        // this.Display.show(this.rooms[i].getText);
         this.Display.append(this.rooms[i].getText);
         this.Display.append('<p>Game end.</p>');
       }
