@@ -3,8 +3,6 @@ import Input from './input';
 import Player from './player';
 import Room from './room';
 import Inventory from './inventory';
-import Item from './item';
-// import Item from './item';
 
 export default class Game {
 
@@ -22,10 +20,8 @@ export default class Game {
 
   init() {
     let displayText;
-    if (this.dataPath !== '') {
-      // this.loadData(this.dataPath);
-      console.log('Initialized game from: ' + this.datapath);
-    }
+    console.log('Initialized game from: ' + this.datapath);
+    // this.loadData(this.dataPath); // TODO: Make games load from JSON data
     if (this.startRoom === '' && this.rooms.length > 0) {
       this.startRoom = this.rooms[0].name; 
       this.Player.startRoom = this.startRoom;
@@ -66,26 +62,6 @@ export default class Game {
     return room;
   }
 
-  // Manage items
-  addItem(name, getText) {
-    const item = new Item(name, getText);
-    this.items.push(item);
-    return this.items;
-  }
-
-  dropItem(itemName) {
-    let newItems = this.items.filter(function(item) {
-      return item.name !== itemName;
-    });
-    this.items = newItems;
-    return this.items;
-  }
-
-  getItem(itemName) {
-    const item = this.items.find(x => x.name === itemName);
-    return item;
-  }
-
   // User input
   userSend(message) {
     // Our Input class will handle cleaning / normalizing strings
@@ -116,14 +92,14 @@ export default class Game {
               _this.Display.show(matchingPromptResults.success.successText);
               // Get items from prompt if any are found
               if (matchingPromptResults.success.itemsGiven !== undefined) {
-                Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.success.itemsGiven);
+                _this.Player.inventory.addItems(matchingPromptResults.success.itemsGiven);
               }
               // Successful prompt leads to new room entrance (if defined in prompt)
               if (matchingPromptResults.success.roomToEnter !== undefined) {
                 let enterRoomResultSuccess;
                 let enterRoomResultText;           
                 [enterRoomResultText, enterRoomResultSuccess] = 
-                      _this.Player.enterRoom(this.getRoom(matchingPromptResults.success.roomToEnter));
+                      _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
                 // Check to see if player's won
                 if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
                   if (enterRoomResultSuccess) {
@@ -138,18 +114,17 @@ export default class Game {
             }
             // Player failed to do prompt (missing item requirement)
             if ('fail' in matchingPromptResults) {
-              _this.Display.show(`${prompt.results.failMessage}`);
-              _this.Display.append(`Missing required items: ${matchingPromptResults.fail.toString()}`);
+              _this.Display.show(`${matchingPromptResults.fail.failText}`);
+              _this.Display.append(`<p>Missing required items: ${matchingPromptResults.fail.missing.toString()}.</p>`);
               return;
             }
           }
-        } else {
-          if (foundPrompt === false) {
-            // Player didn't say any keywords that triggered any of the current room prompts
-            _this.Display.show(`<p>No actions could be done from: "${message}". Try something else.</p>
-            ${_this.getRoom(_this.Player.currentRoom).getText}
-          `);
-          }
+        }
+        if (foundPrompt === false) {
+          // Player didn't say any keywords that triggered any of the current room prompts
+          _this.Display.show(`<p>No actions could be done from: "${message}". Try something else, or be more specific about what you're doing.</p>
+          ${_this.getRoom(_this.Player.currentRoom).getText}
+        `);
         }
       });
     } else {
@@ -174,7 +149,7 @@ export default class Game {
     // Show final room text (win text)
     for (let i = 0; i < this.rooms.length; i++) {
       if (this.rooms[i].name === this.endRoom) {
-        this.Display.append(this.rooms[i].getText);
+        this.Display.append(`<p>${this.rooms[i].getText}</p>`);
         this.Display.append('<p>Game end.</p>');
       }
     }

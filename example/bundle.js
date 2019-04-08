@@ -2,37 +2,49 @@
 const game = require('./text-rpg-engine');
 
 const newRoom = game.addRoom('Beginning', 'This is the beginning room');
+const newRoom2 = game.addRoom('SecondRoom', 'You did it! You won!');
 
-newRoom.addPrompt('look', ['look', 'examine'],
+newRoom2.requirements = ['note'];
+
+newRoom.addPrompt('look', ['look room', 'look at room', 'search room', 'examine room'],
   {
     'successText': 'You see a room with a door to the right and a statue in the middle.'
   }
 );
 
-newRoom.addPrompt('go right', ['go left', 'move right'],
+newRoom.addPrompt('go right', ['go right', 'move right', 'open right'],
   {
-    'successText': 'You enter in the access code "14052" and successfully open the door..',
+    'successText': 'You enter in the access code "14052" and successfully open the door.',
     'failText': 'The door is locked with an access code!',
-    'roomToEnter': 'SecondRoom',
-    'itemsRequired': 'note'
+    'roomToEnter': 'SecondRoom'
   }, 
-  ['note']
+  ['accessKey']
 );
 
 newRoom.addPrompt('get statue', ['get statue', 'pick up statue', 'take statue', 'pick statue up'], 
   {
-    'successText': 'You pick up the statue. It feels heavy in your hands.',
-    'itemsGiven': 'statue'
+    'successText': `You pick up the statue. It feels heavy in your hands, and there's something hanging off
+                    the bottom.`,
+    'itemsGiven': ['statue']
   }
+);
+
+newRoom.addPrompt('look statue', ['rotate statue', 'examine statue', 'look statue', 'check statue', 'look at statue'], 
+  {
+    'successText': 'You take the note from the bottom of the statue.',
+    'failText': 'You have no statue to look at!',
+    'itemsGiven': ['note']
+  },
+  ['statue']
 );
 
 newRoom.addPrompt('look', ['look at note', 'examine note', 'take note'],
   {
     'successText': 'You look at the note and find an access code: "14052."',
     'failText': 'You have no note to look at!',
-    'itemsGiven': 'note'
+    'itemsGiven': ['accessKey']
   },
-  ['statue']
+  ['statue', 'note']
 );
 
 game.init();
@@ -233,8 +245,6 @@ var _room = _interopRequireDefault(__webpack_require__(/*! ./room */ "./src/room
 
 var _inventory = _interopRequireDefault(__webpack_require__(/*! ./inventory */ "./src/inventory.js"));
 
-var _item = _interopRequireDefault(__webpack_require__(/*! ./item */ "./src/item.js"));
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
@@ -253,7 +263,6 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-// import Item from './item';
 var Game =
 /*#__PURE__*/
 function () {
@@ -286,11 +295,7 @@ function () {
     key: "init",
     value: function init() {
       var displayText;
-
-      if (this.dataPath !== '') {
-        // this.loadData(this.dataPath);
-        console.log('Initialized game from: ' + this.datapath);
-      }
+      console.log('Initialized game from: ' + this.datapath); // this.loadData(this.dataPath); // TODO: Make games load from JSON data
 
       if (this.startRoom === '' && this.rooms.length > 0) {
         this.startRoom = this.rooms[0].name;
@@ -341,31 +346,6 @@ function () {
         return x.name === roomName;
       });
       return room;
-    } // Manage items
-
-  }, {
-    key: "addItem",
-    value: function addItem(name, getText) {
-      var item = new _item.default(name, getText);
-      this.items.push(item);
-      return this.items;
-    }
-  }, {
-    key: "dropItem",
-    value: function dropItem(itemName) {
-      var newItems = this.items.filter(function (item) {
-        return item.name !== itemName;
-      });
-      this.items = newItems;
-      return this.items;
-    }
-  }, {
-    key: "getItem",
-    value: function getItem(itemName) {
-      var item = this.items.find(function (x) {
-        return x.name === itemName;
-      });
-      return item;
     } // User input
 
   }, {
@@ -404,7 +384,7 @@ function () {
 
 
                 if (matchingPromptResults.success.itemsGiven !== undefined) {
-                  Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.success.itemsGiven);
+                  _this.Player.inventory.addItems(matchingPromptResults.success.itemsGiven);
                 } // Successful prompt leads to new room entrance (if defined in prompt)
 
 
@@ -412,7 +392,7 @@ function () {
                   var enterRoomResultSuccess;
                   var enterRoomResultText;
 
-                  var _this$Player$enterRoo = _this.Player.enterRoom(this.getRoom(matchingPromptResults.success.roomToEnter));
+                  var _this$Player$enterRoo = _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
 
                   var _this$Player$enterRoo2 = _slicedToArray(_this$Player$enterRoo, 2);
 
@@ -434,18 +414,18 @@ function () {
 
 
               if ('fail' in matchingPromptResults) {
-                _this.Display.show("".concat(prompt.results.failMessage));
+                _this.Display.show("".concat(matchingPromptResults.fail.failText));
 
-                _this.Display.append("Missing required items: ".concat(matchingPromptResults.fail.toString()));
+                _this.Display.append("<p>Missing required items: ".concat(matchingPromptResults.fail.missing.toString(), ".</p>"));
 
                 return;
               }
             }
-          } else {
-            if (foundPrompt === false) {
-              // Player didn't say any keywords that triggered any of the current room prompts
-              _this.Display.show("<p>No actions could be done from: \"".concat(message, "\". Try something else.</p>\n            ").concat(_this.getRoom(_this.Player.currentRoom).getText, "\n          "));
-            }
+          }
+
+          if (foundPrompt === false) {
+            // Player didn't say any keywords that triggered any of the current room prompts
+            _this.Display.show("<p>No actions could be done from: \"".concat(message, "\". Try something else.</p>\n          ").concat(_this.getRoom(_this.Player.currentRoom).getText, "\n        "));
           }
         });
       } else {
@@ -472,7 +452,7 @@ function () {
       // Show final room text (win text)
       for (var i = 0; i < this.rooms.length; i++) {
         if (this.rooms[i].name === this.endRoom) {
-          this.Display.append(this.rooms[i].getText);
+          this.Display.append("<p>".concat(this.rooms[i].getText, "</p>"));
           this.Display.append('<p>Game end.</p>');
         }
       } // Disable any more user input after winning
@@ -622,29 +602,14 @@ function () {
     _classCallCheck(this, Inventory);
 
     this.items = items;
-  }
+  } // We can use this to add single or multiple items, as long as the 
+  // passed value is an array
+
 
   _createClass(Inventory, [{
-    key: "examine",
-    value: function examine() {
-      var itemName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
-
-      // If we're examining an item
-      if (itemName !== null) {
-        // Display item getText
-        return this.items[itemName].getText;
-      } // If we're examining inventory, print out
-      // list of all the items.
-
-
-      return this.items.map(function (a) {
-        return a.name;
-      });
-    }
-  }, {
-    key: "addItem",
-    value: function addItem(item) {
-      this.items.push(item);
+    key: "addItems",
+    value: function addItems(items) {
+      this.items = this.items.concat(items);
       return this.items;
     }
   }, {
@@ -662,55 +627,6 @@ function () {
 }();
 
 exports.default = Inventory;
-module.exports = exports["default"];
-
-/***/ }),
-
-/***/ "./src/item.js":
-/*!*********************!*\
-  !*** ./src/item.js ***!
-  \*********************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.default = void 0;
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
-
-function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
-
-var Item =
-/*#__PURE__*/
-function () {
-  function Item() {
-    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-    var getText = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-
-    _classCallCheck(this, Item);
-
-    this.name = name;
-    this.getText = getText; // Text displayed when item is gotten
-  }
-
-  _createClass(Item, [{
-    key: "get",
-    value: function get() {
-      return this.getText;
-    }
-  }]);
-
-  return Item;
-}();
-
-exports.default = Item;
 module.exports = exports["default"];
 
 /***/ }),
@@ -769,16 +685,16 @@ function () {
   _createClass(Player, [{
     key: "enterRoom",
     value: function enterRoom(room) {
-      var res = room.enter(this.inventory.items);
+      var roomResult = room.enter(this.inventory.items);
 
-      if (res[1] === false) {// Player did not have required items to enter the room
+      if (roomResult[1] === false) {// Player did not have required items to enter the room
       } else {
         // Entered room successfully
         this.currentRoom = room.name;
-      } // Return game text and whether or not we were able to enter room
+      } // Return results text and whether or not player successfully entered room
 
 
-      return [res[0], res[1]];
+      return [roomResult[0], roomResult[1]];
     }
   }, {
     key: "getItem",
@@ -791,19 +707,6 @@ function () {
     value: function dropItem(item) {
       this.inventory.dropItem(item);
       return this.inventory;
-    }
-  }, {
-    key: "doAction",
-    value: function doAction(text) {
-      var item = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
-      // No item passed, check room prompts for actions
-      if (item === null) {
-        return this.currentRoom.doAction(text);
-      } // Doing action on item, check item prompts
-
-
-      return item.doAction(text);
     }
   }]);
 
@@ -865,11 +768,11 @@ function () {
     key: "matchKeywords",
     value: function matchKeywords(message) {
       var items = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-      var foundKeyword = false; // If we have any item requirements
+      var foundKeyword = false;
+      var missingRequirements = []; // If we have any item requirements
 
       if (this.requirements.length > 0) {
-        var missingRequirements = []; // Check all the requirements against the items passed
-
+        // Check all the requirements against the items passed
         this.requirements.forEach(function (requirement) {
           var foundRequirement = false;
           items.forEach(function (item) {
@@ -881,14 +784,9 @@ function () {
           if (!foundRequirement) {
             missingRequirements.push(requirement);
           }
-        }); // Return fail message with missing item requirements
-
-        if (missingRequirements.length > 0) {
-          return {
-            'fail': missingRequirements
-          };
-        }
-      } // If we have all our item requirements, check the user's message
+        });
+      } // Return fail message with missing item requirements
+      // If we have all our item requirements, check the user's message
       // to see if we find any matching keywords
 
 
@@ -899,6 +797,15 @@ function () {
       }); // Keywords have been matched from the user input, so return results of prompt
 
       if (foundKeyword) {
+        if (missingRequirements.length > 0) {
+          return {
+            'fail': {
+              'missing': missingRequirements,
+              'failText': this.results.failText
+            }
+          };
+        }
+
         return {
           'success': this.results
         };
@@ -958,15 +865,17 @@ function () {
     this.prompts = prompts; // What are the actions that we can do in this room?
 
     this.requirements = requirements; // Any requirements (items) needed to access the room
-  }
+  } // Add new prompt / interaction to room
+
 
   _createClass(Room, [{
     key: "addPrompt",
-    value: function addPrompt(name, keywords, resultTexts) {
-      var prompt = new _prompt.default(name, keywords, resultTexts);
+    value: function addPrompt(name, keywords, results, requirements) {
+      var prompt = new _prompt.default(name, keywords, results, requirements);
       this.prompts.push(prompt);
       return this.prompts;
-    }
+    } // Enter the room
+
   }, {
     key: "enter",
     value: function enter() {
@@ -1009,31 +918,6 @@ function () {
 
 
       return [resultText, metAllRequirements];
-    }
-  }, {
-    key: "doAction",
-    value: function doAction(value) {
-      // For now let's only do one action at a time
-      var resultText = {};
-
-      if (this.prompts.length === 0) {
-        resultText['text'] = "There doesn't seem to be any actions you can do in this room.";
-      }
-
-      Object.values(this.prompts).forEach(function (key, val) {
-        if (value === key) {
-          resultText['text'] = val.resultTextText; // Successful action returning resultTexting text
-
-          if (val.resultTextItems !== null) {
-            resultText['items'] = val.resultTextItems; // Successful action resultTexting in new items
-          }
-
-          if (val.resultTextRoom !== null) {
-            resultText['resultText'] = val.resultTextRoom; // Successful action resultTexting in a new room
-          }
-        }
-      });
-      return resultText;
     }
   }]);
 

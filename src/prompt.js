@@ -15,9 +15,9 @@ export default class Prompt {
   // Check if input message matches any prompt keywords
   matchKeywords(message, items = []) {
     let foundKeyword = false;
+    let missingRequirements = [];
     // If we have any item requirements
     if (this.requirements.length > 0) {
-      let missingRequirements = [];
       // Check all the requirements against the items passed
       this.requirements.forEach(function(requirement) {
         let foundRequirement = false;
@@ -31,11 +31,8 @@ export default class Prompt {
           missingRequirements.push(requirement);
         }
       });
-      // Return fail message with missing item requirements
-      if (missingRequirements.length > 0) {
-        return {'fail': missingRequirements};
-      }
     }
+    // Return fail message with missing item requirements
     // If we have all our item requirements, check the user's message
     // to see if we find any matching keywords
     this.keywords.forEach(function(keyword) {
@@ -45,6 +42,12 @@ export default class Prompt {
     });
     // Keywords have been matched from the user input, so return results of prompt
     if (foundKeyword) {
+      if (missingRequirements.length > 0) {
+        return {'fail': {
+          'missing': missingRequirements,
+          'failText': this.results.failText}
+        };
+      }
       return {'success': this.results};
     }
     return null;

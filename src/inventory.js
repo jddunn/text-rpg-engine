@@ -4,19 +4,10 @@ export default class Inventory {
     this.items = items;
   }
   
-  examine(itemName = null) {
-    // If we're examining an item
-    if (itemName !== null) {
-      // Display item getText
-      return this.items[itemName].getText;
-    }
-    // If we're examining inventory, print out
-    // list of all the items.
-    return this.items.map(a => a.name);
-  }
-
-  addItem(item) {
-    this.items.push(item);
+  // We can use this to add single or multiple items, as long as the 
+  // passed value is an array
+  addItems(items) {
+    this.items = this.items.concat(items);
     return this.items;
   }
 

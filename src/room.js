@@ -10,8 +10,8 @@ export default class Room {
   }
 
   // Add new prompt / interaction to room
-  addPrompt(name, keywords, results) {
-    const prompt = new Prompt(name, keywords, results);
+  addPrompt(name, keywords, results, requirements) {
+    const prompt = new Prompt(name, keywords, results, requirements);
     this.prompts.push(prompt);
     return this.prompts;
   }

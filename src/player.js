@@ -35,8 +35,5 @@ export default class Player {
     this.inventory.dropItem(item);
     return this.inventory;
   }
-
-  doAction(text) {
-  }
 }
   
