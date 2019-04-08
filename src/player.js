@@ -2,13 +2,16 @@ import Inventory from './inventory';
 
 export default class Player {
 
-  constructor(name = 'player', inventory = new Inventory(), currentRoom = '', startRoom) {
+  constructor(name = '', inventory = new Inventory(), currentRoom = '', startRoom) {
     this.name = name;
+    if (this.name === '') {
+      this.name = 'player';
+    }
     this.inventory = inventory;
-    this.startRoom = startRoom;
     if (this.currentRoom === '') {
       this.currentRoom = this.startRoom;
     }
+    this.startRoom = startRoom;
   }
   
   enterRoom(room) {

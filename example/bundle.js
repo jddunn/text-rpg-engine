@@ -209,6 +209,14 @@ var _inventory = _interopRequireDefault(__webpack_require__(/*! ./inventory */ "
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance"); }
+
+function _iterableToArrayLimit(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -237,8 +245,9 @@ function () {
     this.startRoom = startRoom; // Which room will the player start in
 
     this.endRoom = endRoom; // Which room 
+    // TODO: Allow players to give their characters their own names later
 
-    this.Player = new _player.default(this.startRoom); // TODO: Allow players to give their characters their own names later
+    this.Player = new _player.default(startRoom = this.startRoom);
   }
 
   _createClass(Game, [{
@@ -340,22 +349,24 @@ function () {
             if (matchingPromptResults.room !== undefined) {
               _this.Player.currentRoom = matchingPromptResults.room; // Check to see if player's won
 
-              var enterRoomResult;
+              var enterRoomResultSuccess;
+              var enterRoomResultText;
+
+              var _this$Player$enterRoo = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+
+              var _this$Player$enterRoo2 = _slicedToArray(_this$Player$enterRoo, 2);
+
+              enterRoomResultText = _this$Player$enterRoo2[0];
+              enterRoomResultSuccess = _this$Player$enterRoo2[1];
 
               if (matchingPromptResults.room === _this.endRoom) {
-                enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
-
-                if (enterRoomResult[1]) {
+                if (enterRoomResultSuccess) {
                   // Successfully entered room to win game
                   _this.win();
                 } else {
                   // Display results text (fail to enter winning room)
-                  _this.Display.append(enterRoomResult[0]);
+                  _this.Display.append(enterRoomResultText);
                 }
-              } else {
-                enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
-
-                _this.Display.append(enterRoomResult[0]);
               }
             }
           } else {
@@ -371,6 +382,8 @@ function () {
 
         return;
       }
+
+      console.log(message, this.Player);
     }
   }, {
     key: "disableInput",
@@ -616,7 +629,7 @@ var Player =
 /*#__PURE__*/
 function () {
   function Player() {
-    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'player';
+    var name = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
     var inventory = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : new _inventory.default();
     var currentRoom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
     var startRoom = arguments[3];
@@ -624,12 +637,18 @@ function () {
     _classCallCheck(this, Player);
 
     this.name = name;
+
+    if (this.name === '') {
+      this.name = 'player';
+    }
+
     this.inventory = inventory;
-    this.startRoom = startRoom;
 
     if (this.currentRoom === '') {
       this.currentRoom = this.startRoom;
     }
+
+    this.startRoom = startRoom;
   }
 
   _createClass(Player, [{

@@ -13,7 +13,8 @@ export default class Game {
     this.rooms = rooms; // All the rooms inside our game
     this.startRoom = startRoom; // Which room will the player start in
     this.endRoom = endRoom; // Which room 
-    this.Player = new Player(this.startRoom); // TODO: Allow players to give their characters their own names later
+    // TODO: Allow players to give their characters their own names later
+    this.Player = new Player(startRoom = this.startRoom); 
   }
 
   init() {
@@ -94,7 +95,8 @@ export default class Game {
             // Check to see if player's won
             let enterRoomResultSuccess;
             let enterRoomResultText;           
-            [enterRoomResultText, enterRoomResultSuccess] = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+            [enterRoomResultText, enterRoomResultSuccess] = 
+              _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
             if (matchingPromptResults.room === _this.endRoom) {
               if (enterRoomResultSuccess) {
                 // Successfully entered room to win game
@@ -120,6 +122,7 @@ export default class Game {
       `);
       return;
     }
+    console.log(message, this.Player);
   }
 
   disableInput() {
