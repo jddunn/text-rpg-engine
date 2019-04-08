@@ -2,6 +2,7 @@ import Display from './display';
 import Input from './input';
 import Player from './player';
 import Room from './room';
+import Inventory from './inventory';
 
 export default class Game {
 
@@ -67,6 +68,9 @@ export default class Game {
   }
 
   decidePath(message) {
+    if (message === 'restart') {
+      this.resetGame();
+    }
     // Check to see if an item name was in the message
     // if (message.split())
     const _this = this;
@@ -77,23 +81,32 @@ export default class Game {
         if (matchingPromptResults !== null) {
           // For now just get the first matching result and show that
           // (only one prompt / action per message is sent is supported)
-          console.log('FOUND MATCHING PROMPT RESULTS: ', matchingPromptResults);
+          // console.log('FOUND MATCHING PROMPT RESULTS: ', matchingPromptResults);
           _this.Display.show(matchingPromptResults.text);
           // Get items from prompt if any are found
           // Merge the second array into the first one
-          if (matchingPromptResults.resultItems !== undefined) {
+          if (matchingPromptResults.items !== undefined) {
             Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.items);
           }
-          if (matchingPromptResults.resultRoom !== undefined) {
-            // Successful prompt leads to new room entrance (if defined in prompt)
+          // Successful prompt leads to new room entrance (if defined in prompt)
+          if (matchingPromptResults.room !== undefined) {
             _this.Player.currentRoom = matchingPromptResults.room;
             // Check to see if player's won
-            if (matchingPromptResults.Room === _this.endRoom) {
-              _this.win();
+            let enterRoomResult;              
+            if (matchingPromptResults.room === _this.endRoom) {
+              enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+              if (enterRoomResult[1]) {
+                // Successfully entered room to win game
+                _this.win();
+              } else {
+                // Display results text (fail to enter winning room)
+                _this.Display.append(enterRoomResult[0]);
+              }
             } else {
-              matchingPromptResults.Room.enter(_this.Player.inventory.items);
+              enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+              _this.Display.append(enterRoomResult[0]);
             }
-          } 
+          }
         } else {
           // Player didn't say any keywords that triggered any of the current room prompts
           _this.Display.show(`<p>No actions could be done from: "${message}". Try something else.</p>
@@ -123,15 +136,21 @@ export default class Game {
     // Show final room text (win text)
     for (let i = 0; i < this.rooms.length; i++) {
       if (this.rooms[i].name === this.endRoom) {
-        this.Display.show(this.rooms[i].getText);
+        // this.Display.show(this.rooms[i].getText);
+        this.Display.append(this.rooms[i].getText);
+        this.Display.append('<p>Game end.</p>');
       }
     }
     // Disable any more user input after winning
     this.disableInput();
   }
 
-  resetPlayer() {
+  resetGame() {
     // Resets player with blank inventory and back to starting room
-    // this.Player = new Player(this.startRoom);
+    this.Player.inventory = new Inventory();
+    this.Player.currentRoom = this.startRoom;
+    const room = this.getRoom(this.startRoom);
+    this.Display.show(room.getText);
+    this.Input.enable();
   }
 }

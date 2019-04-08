@@ -19,7 +19,7 @@ export default class Player {
       // Entered room successfully
       this.currentRoom = room.name; 
     }
-    // Return game text from attempted room entry
+    // Return game text and whether or not we were able to enter room
     return [res[0], res[1]];
   }
 

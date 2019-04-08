@@ -9,11 +9,9 @@ newRoom.addPrompt('look', ['look', 'examine'],
   }
 );
 
-console.log('NEW ROOM OBJECT: ', newRoom);
-
 game.init();
 
-console.log('THIS IS GAME: ', game);
+console.log(game);
 
 // Send user input to our game (on pressing 'Enter' in the form)
 document.getElementById('input').addEventListener('keypress', function (event) {
@@ -169,6 +167,11 @@ function () {
         this.html = html;
       }
     }
+  }, {
+    key: "append",
+    value: function append(html) {
+      document.getElementById(this.elementId).innerHTML += html;
+    }
   }]);
 
   return Display;
@@ -201,6 +204,8 @@ var _input = _interopRequireDefault(__webpack_require__(/*! ./input */ "./src/in
 var _player = _interopRequireDefault(__webpack_require__(/*! ./player */ "./src/player.js"));
 
 var _room = _interopRequireDefault(__webpack_require__(/*! ./room */ "./src/room.js"));
+
+var _inventory = _interopRequireDefault(__webpack_require__(/*! ./inventory */ "./src/inventory.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -305,8 +310,12 @@ function () {
   }, {
     key: "decidePath",
     value: function decidePath(message) {
-      // Check to see if an item name was in the message
+      if (message === 'restart') {
+        this.resetGame();
+      } // Check to see if an item name was in the message
       // if (message.split())
+
+
       var _this = this;
 
       var currRoom = _this.getRoom(_this.Player.currentRoom);
@@ -318,24 +327,35 @@ function () {
           if (matchingPromptResults !== null) {
             // For now just get the first matching result and show that
             // (only one prompt / action per message is sent is supported)
-            console.log('FOUND MATCHING PROMPT RESULTS: ', matchingPromptResults);
-
+            // console.log('FOUND MATCHING PROMPT RESULTS: ', matchingPromptResults);
             _this.Display.show(matchingPromptResults.text); // Get items from prompt if any are found
             // Merge the second array into the first one
 
 
-            if (matchingPromptResults.resultItems !== undefined) {
+            if (matchingPromptResults.items !== undefined) {
               Array.prototype.push.apply(_this.Player.inventory.items, matchingPromptResults.items);
-            }
+            } // Successful prompt leads to new room entrance (if defined in prompt)
 
-            if (matchingPromptResults.resultRoom !== undefined) {
-              // Successful prompt leads to new room entrance (if defined in prompt)
+
+            if (matchingPromptResults.room !== undefined) {
               _this.Player.currentRoom = matchingPromptResults.room; // Check to see if player's won
 
-              if (matchingPromptResults.Room === _this.endRoom) {
-                _this.win();
+              var enterRoomResult;
+
+              if (matchingPromptResults.room === _this.endRoom) {
+                enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+
+                if (enterRoomResult[1]) {
+                  // Successfully entered room to win game
+                  _this.win();
+                } else {
+                  // Display results text (fail to enter winning room)
+                  _this.Display.append(enterRoomResult[0]);
+                }
               } else {
-                matchingPromptResults.Room.enter(_this.Player.inventory.items);
+                enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
+
+                _this.Display.append(enterRoomResult[0]);
               }
             }
           } else {
@@ -368,7 +388,9 @@ function () {
       // Show final room text (win text)
       for (var i = 0; i < this.rooms.length; i++) {
         if (this.rooms[i].name === this.endRoom) {
-          this.Display.show(this.rooms[i].getText);
+          // this.Display.show(this.rooms[i].getText);
+          this.Display.append(this.rooms[i].getText);
+          this.Display.append('<p>Game end.</p>');
         }
       } // Disable any more user input after winning
 
@@ -376,9 +398,14 @@ function () {
       this.disableInput();
     }
   }, {
-    key: "resetPlayer",
-    value: function resetPlayer() {// Resets player with blank inventory and back to starting room
-      // this.Player = new Player(this.startRoom);
+    key: "resetGame",
+    value: function resetGame() {
+      // Resets player with blank inventory and back to starting room
+      this.Player.inventory = new _inventory.default();
+      this.Player.currentRoom = this.startRoom;
+      var room = this.getRoom(this.startRoom);
+      this.Display.show(room.getText);
+      this.Input.enable();
     }
   }]);
 
@@ -614,7 +641,7 @@ function () {
       } else {
         // Entered room successfully
         this.currentRoom = room.name;
-      } // Return game text from attempted room entry
+      } // Return game text and whether or not we were able to enter room
 
 
       return [res[0], res[1]];
@@ -769,8 +796,8 @@ function () {
 
   _createClass(Room, [{
     key: "addPrompt",
-    value: function addPrompt(name, keywords, results) {
-      var prompt = new _prompt.default(name, keywords, results);
+    value: function addPrompt(name, keywords, resultTexts) {
+      var prompt = new _prompt.default(name, keywords, resultTexts);
       this.prompts.push(prompt);
       return this.prompts;
     }
@@ -778,7 +805,7 @@ function () {
     key: "enter",
     value: function enter() {
       var items = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
-      var result = '';
+      var resultText = '';
       var metAllRequirements = true; // Can we enter the room?
       // The room is not accessible by default
 
@@ -787,7 +814,7 @@ function () {
           metAllRequirements = false; // Return missing requirement messages
 
           this.requirements.forEach(function (requirement) {
-            result += "".concat(requirement.failText, ". ");
+            resultText += "".concat(requirement.failText, ". ");
           });
         } else {
           // Check the room's requirements for matching items
@@ -802,45 +829,45 @@ function () {
             if (found === false) {
               metAllRequirements = false; // Return fail messages for missing requirements
 
-              result += requirement.failText;
+              resultText += requirement.failText;
             }
           });
 
           if (metAllRequirements === true) {
-            result = this.getText;
+            resultText = this.getText;
           }
         }
       } else {
-        result = this.getText;
-      } // Return text with results and whether or not room could be entered
+        resultText = this.getText;
+      } // Return text with resultTexts and whether or not room could be entered
 
 
-      return [result, metAllRequirements];
+      return [resultText, metAllRequirements];
     }
   }, {
     key: "doAction",
     value: function doAction(value) {
       // For now let's only do one action at a time
-      var result = {};
+      var resultText = {};
 
       if (this.prompts.length === 0) {
-        result['text'] = "There doesn't seem to be any actions you can do in this room.";
+        resultText['text'] = "There doesn't seem to be any actions you can do in this room.";
       }
 
       Object.values(this.prompts).forEach(function (key, val) {
         if (value === key) {
-          result['text'] = val.resultText; // Successful action returning resulting text
+          resultText['text'] = val.resultTextText; // Successful action returning resultTexting text
 
-          if (val.resultItems !== null) {
-            result['items'] = val.resultItems; // Successful action resulting in new items
+          if (val.resultTextItems !== null) {
+            resultText['items'] = val.resultTextItems; // Successful action resultTexting in new items
           }
 
-          if (val.resultRoom !== null) {
-            result['result'] = val.resultRoom; // Successful action resulting in a new room
+          if (val.resultTextRoom !== null) {
+            resultText['resultText'] = val.resultTextRoom; // Successful action resultTexting in a new room
           }
         }
       });
-      return result;
+      return resultText;
     }
   }]);
 

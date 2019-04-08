@@ -13,4 +13,8 @@ export default class Display {
       this.html = html;
     }
   }
+
+  append(html) {
+    document.getElementById(this.elementId).innerHTML += html;
+  }
 }
