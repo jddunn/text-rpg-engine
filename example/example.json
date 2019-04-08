@@ -1,0 +1,41 @@
+{
+    "title": "Text RPG",
+    "author": "Johnny Dunn",
+    "website": "",
+    "version": "0.1.0",
+    "game":
+        [
+            {
+                "intro": {
+                    "start": true,
+                    "html": "<p>Welcome!</p>",
+                    "prompts": {
+                        "look": {
+                            "text": "You see nothing.",
+                            "returns": null
+                        }
+                    },
+                    "inputTypeDisabled": false,
+                    "items": {
+                        "statue": {
+                            "prompts": {
+                                "look": {
+                                    "text": "You flip the statue over and see a note taped to the bottom!.",
+                                    "returns": "statue_note"
+                                }
+                            },
+                            "description": "A spherical, metallic statue held by a wooden base."
+                        }
+                    },
+                    "accessible": true,
+                    "requirements": {
+                    },
+                    "exits": {
+                    },
+                    "linkedArt": "",
+                    "enterMessage": "",
+                    "exitMessage": ""
+                }
+            }
+        ]
+}
