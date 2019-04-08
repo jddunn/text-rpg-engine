@@ -15,15 +15,15 @@ export default class Player {
   }
   
   enterRoom(room) {
-    const res = room.enter(this.inventory.items);
-    if (res[1] === false) {
+    const roomResult = room.enter(this.inventory.items);
+    if (roomResult[1] === false) {
       // Player did not have required items to enter the room
     } else {
       // Entered room successfully
       this.currentRoom = room.name; 
     }
-    // Return game text and whether or not we were able to enter room
-    return [res[0], res[1]];
+    // Return results text and whether or not player successfully entered room
+    return [roomResult[0], roomResult[1]];
   }
 
   getItem(item) {
@@ -36,13 +36,7 @@ export default class Player {
     return this.inventory;
   }
 
-  doAction(text, item = null) {
-    // No item passed, check room prompts for actions
-    if (item === null) {
-      return this.currentRoom.doAction(text);
-    }
-    // Doing action on item, check item prompts
-    return item.doAction(text);
+  doAction(text) {
   }
 }
   

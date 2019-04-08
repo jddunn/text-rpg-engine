@@ -314,7 +314,8 @@ function () {
       }
 
       this.Display.show(displayText);
-    }
+    } // Manage rooms
+
   }, {
     key: "addRoom",
     value: function addRoom(name, getText) {
@@ -340,7 +341,8 @@ function () {
         return x.name === roomName;
       });
       return room;
-    }
+    } // Manage items
+
   }, {
     key: "addItem",
     value: function addItem(name, getText) {
@@ -364,14 +366,16 @@ function () {
         return x.name === itemName;
       });
       return item;
-    }
+    } // User input
+
   }, {
     key: "userSend",
     value: function userSend(message) {
       // Our Input class will handle cleaning / normalizing strings
       this.Input.send(message);
       this.decidePath(this.Input.value);
-    }
+    } // Game AI
+
   }, {
     key: "decidePath",
     value: function decidePath(message) {
@@ -390,10 +394,10 @@ function () {
         var foundPrompt = false;
         currRoom.prompts.forEach(function (prompt) {
           if (foundPrompt === false) {
-            var matchingPromptResults = prompt.matchKeywords(message); // If we get a matching result back
+            var matchingPromptResults = prompt.matchKeywords(message, _this.Player.inventory.items); // If we get a matching result back
 
             if (matchingPromptResults !== null) {
-              foundPrompt = true;
+              foundPrompt = true; // If player succeeded in prompt action
 
               if ('success' in matchingPromptResults) {
                 _this.Display.show(matchingPromptResults.success.successText); // Get items from prompt if any are found
@@ -425,14 +429,11 @@ function () {
                       _this.Display.append(enterRoomResultText);
                     }
                   }
-                } // return;
-
-              } // Failed to do prompt (missing item requirement)
+                }
+              } // Player failed to do prompt (missing item requirement)
 
 
               if ('fail' in matchingPromptResults) {
-                console.log('fail is in matching prompt');
-
                 _this.Display.show("".concat(prompt.results.failMessage));
 
                 _this.Display.append("Missing required items: ".concat(matchingPromptResults.fail.toString()));
@@ -449,8 +450,6 @@ function () {
         });
       } else {
         // No prompts exist for the current room
-        console.log('UNDEFINED PROMPTS');
-
         _this.Display.show("<p>There doesn't seem to be any actions at all that you can do in this room.</p>\n                        ".concat(_this.getRoom(_this.Player.currentRoom).getText, "\n      "));
       }
 
@@ -465,7 +464,8 @@ function () {
     key: "enableInput",
     value: function enableInput() {
       this.Input.enable();
-    }
+    } // Player wins
+
   }, {
     key: "win",
     value: function win() {
@@ -479,7 +479,8 @@ function () {
 
 
       this.disableInput();
-    }
+    } // Player resets game
+
   }, {
     key: "resetGame",
     value: function resetGame() {
@@ -854,7 +855,7 @@ function () {
     // the result keys comprise of “successText” (required), "failText" (optional),
     // “itemsRequired” (optional), // and “roomToEnter"” 
 
-    this.results = results; // Any pre-requistie items needed to do the prompt?
+    this.results = results; // Any prerequisite items needed to do the prompt?
 
     this.requirements = requirements;
   } // Check if input message matches any prompt keywords
@@ -864,35 +865,38 @@ function () {
     key: "matchKeywords",
     value: function matchKeywords(message) {
       var items = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-      var foundKeyword = false;
+      var foundKeyword = false; // If we have any item requirements
 
       if (this.requirements.length > 0) {
-        var missingRequirements = [];
+        var missingRequirements = []; // Check all the requirements against the items passed
+
         this.requirements.forEach(function (requirement) {
           var foundRequirement = false;
           items.forEach(function (item) {
             if (item === requirement) {
               foundRequirement = true;
             }
-          });
+          }); // If a requirement isn't found add that a list
 
           if (!foundRequirement) {
             missingRequirements.push(requirement);
           }
-        });
+        }); // Return fail message with missing item requirements
 
         if (missingRequirements.length > 0) {
           return {
             'fail': missingRequirements
           };
         }
-      }
+      } // If we have all our item requirements, check the user's message
+      // to see if we find any matching keywords
+
 
       this.keywords.forEach(function (keyword) {
         if (message.includes(keyword.toLowerCase())) {
           foundKeyword = true;
         }
-      });
+      }); // Keywords have been matched from the user input, so return results of prompt
 
       if (foundKeyword) {
         return {

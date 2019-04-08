@@ -9,12 +9,14 @@ export default class Room {
     this.requirements = requirements; // Any requirements (items) needed to access the room
   }
 
-  addPrompt(name, keywords, resultTexts) {
-    const prompt = new Prompt(name, keywords, resultTexts);
+  // Add new prompt / interaction to room
+  addPrompt(name, keywords, results) {
+    const prompt = new Prompt(name, keywords, results);
     this.prompts.push(prompt);
     return this.prompts;
   }
 
+  // Enter the room
   enter(items = []) {
     let resultText = '';
     let metAllRequirements = true; // Can we enter the room?
@@ -52,23 +54,4 @@ export default class Room {
     return [resultText, metAllRequirements];
   }
 
-  doAction(value) {
-    // For now let's only do one action at a time
-    let resultText = {};
-    if (this.prompts.length === 0) {
-      resultText['text'] = "There doesn't seem to be any actions you can do in this room.";
-    }
-    Object.values(this.prompts).forEach(function(key, val) { 
-      if (value === key) {
-        resultText['text'] = val.resultTextText; // Successful action returning resultTexting text
-        if (val.resultTextItems !== null) {
-          resultText['items'] = val.resultTextItems; // Successful action resultTexting in new items
-        }
-        if (val.resultTextRoom !== null) {
-          resultText['resultText'] = val.resultTextRoom; // Successful action resultTexting in a new room
-        }
-      }
-    });
-    return resultText;
-  }
 }
