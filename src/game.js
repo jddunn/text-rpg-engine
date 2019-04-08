@@ -92,19 +92,17 @@ export default class Game {
           if (matchingPromptResults.room !== undefined) {
             _this.Player.currentRoom = matchingPromptResults.room;
             // Check to see if player's won
-            let enterRoomResult;              
+            let enterRoomResultSuccess;
+            let enterRoomResultText;           
+            [enterRoomResultText, enterRoomResultSuccess] = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
             if (matchingPromptResults.room === _this.endRoom) {
-              enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
-              if (enterRoomResult[1]) {
+              if (enterRoomResultSuccess) {
                 // Successfully entered room to win game
                 _this.win();
               } else {
                 // Display results text (fail to enter winning room)
-                _this.Display.append(enterRoomResult[0]);
+                _this.Display.append(enterRoomResultText);
               }
-            } else {
-              enterRoomResult = _this.Player.enterRoom(this.getRoom(matchingPromptResults.room));
-              _this.Display.append(enterRoomResult[0]);
             }
           }
         } else {
