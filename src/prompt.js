@@ -8,15 +8,17 @@ export default class Prompt {
     // the result keys comprise of “successText” (required), "failText" (optional),
     // “itemsRequired” (optional), // and “roomToEnter"” 
     this.results = results; 
-    // Any pre-requistie items needed to do the prompt?
+    // Any prerequisite items needed to do the prompt?
     this.requirements = requirements; 
   }
 
   // Check if input message matches any prompt keywords
   matchKeywords(message, items = []) {
     let foundKeyword = false;
+    // If we have any item requirements
     if (this.requirements.length > 0) {
       let missingRequirements = [];
+      // Check all the requirements against the items passed
       this.requirements.forEach(function(requirement) {
         let foundRequirement = false;
         items.forEach(function(item) {
@@ -24,19 +26,24 @@ export default class Prompt {
             foundRequirement = true;
           }
         });
+        // If a requirement isn't found add that a list
         if (!foundRequirement) {
           missingRequirements.push(requirement);
         }
       });
+      // Return fail message with missing item requirements
       if (missingRequirements.length > 0) {
         return {'fail': missingRequirements};
       }
     }
+    // If we have all our item requirements, check the user's message
+    // to see if we find any matching keywords
     this.keywords.forEach(function(keyword) {
       if (message.includes(keyword.toLowerCase())) {
         foundKeyword = true;
       }
     });
+    // Keywords have been matched from the user input, so return results of prompt
     if (foundKeyword) {
       return {'success': this.results};
     }

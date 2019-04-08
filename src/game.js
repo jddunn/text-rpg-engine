@@ -46,6 +46,7 @@ export default class Game {
     this.Display.show(displayText);
   }
 
+  // Manage rooms
   addRoom(name, getText, prompts = [], requirements = []) {
     let roomObj = new Room(name, getText, prompts, requirements);
     this.rooms.push(roomObj);
@@ -65,6 +66,7 @@ export default class Game {
     return room;
   }
 
+  // Manage items
   addItem(name, getText) {
     const item = new Item(name, getText);
     this.items.push(item);
@@ -84,31 +86,32 @@ export default class Game {
     return item;
   }
 
+  // User input
   userSend(message) {
     // Our Input class will handle cleaning / normalizing strings
     this.Input.send(message);
     this.decidePath(this.Input.value);
   }
 
+  // Game AI
   decidePath(message) {
     if (message === 'restart') {
       this.resetGame();
     }
     const _this = this;
     const currRoom = _this.getRoom(_this.Player.currentRoom);
-
     // Do we have actions that we can do in the room?
-  
     if (typeof currRoom.prompts !== undefined) {
       // Check every prompt action to see if it matches our input keywords
       // For now just get the first matching prompt and do that
       let foundPrompt = false;
       currRoom.prompts.forEach(function (prompt) {
         if (foundPrompt === false) {
-          const matchingPromptResults = prompt.matchKeywords(message);
+          const matchingPromptResults = prompt.matchKeywords(message, _this.Player.inventory.items);
           // If we get a matching result back
           if (matchingPromptResults !== null) {
             foundPrompt = true;
+            // If player succeeded in prompt action
             if ('success' in matchingPromptResults) {
               _this.Display.show(matchingPromptResults.success.successText);
               // Get items from prompt if any are found
@@ -132,11 +135,9 @@ export default class Game {
                   }
                 }
               }
-              // return;
             }
-            // Failed to do prompt (missing item requirement)
+            // Player failed to do prompt (missing item requirement)
             if ('fail' in matchingPromptResults) {
-              console.log('fail is in matching prompt');
               _this.Display.show(`${prompt.results.failMessage}`);
               _this.Display.append(`Missing required items: ${matchingPromptResults.fail.toString()}`);
               return;
@@ -153,13 +154,11 @@ export default class Game {
       });
     } else {
       // No prompts exist for the current room
-      console.log('UNDEFINED PROMPTS');
       _this.Display.show(`<p>There doesn't seem to be any actions at all that you can do in this room.</p>
                         ${_this.getRoom(_this.Player.currentRoom).getText}
       `);
     }
     console.log(message, this.Player);
-
   }
 
   disableInput() {
@@ -170,6 +169,7 @@ export default class Game {
     this.Input.enable();
   }
 
+  // Player wins
   win() {
     // Show final room text (win text)
     for (let i = 0; i < this.rooms.length; i++) {
@@ -182,6 +182,7 @@ export default class Game {
     this.disableInput();
   }
 
+  // Player resets game
   resetGame() {
     // Resets player with blank inventory and back to starting room
     this.Player.inventory = new Inventory();
