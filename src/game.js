@@ -102,16 +102,16 @@ export default class Game {
                 let enterRoomResultText;           
                 // Check to see if player can successfully enter the room (given the inventory / room requirements)
                 [enterRoomResultText, enterRoomResultSuccess] = 
-                      _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
-                // Check to see if player entered winning room
+                                  _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
+                _this.Display.append(enterRoomResultText);
                 if (enterRoomResultSuccess) {
+                  // Check to see if player entered winning room
                   if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
                     _this.win();
                   }
                 } else {
-                  // Player could not enter room
+                  // Player could not enter room (missing required items in inventory)
                 }
-                _this.Display.append(enterRoomResultText);
               }
             }
             // Player failed to do prompt (missing item requirement)
