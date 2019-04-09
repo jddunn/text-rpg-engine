@@ -111,13 +111,15 @@ export default class Game {
                     // Player didn't win yet (a required item is not in inventory)
                   }
                 }
+                // Show result of room entrance
                 _this.Display.append(enterRoomResultText);
               }
             }
             // Player failed to do prompt (missing item requirement)
             if ('fail' in matchingPromptResults) {
               _this.Display.show(`${matchingPromptResults.fail.failText}`);
-              _this.Display.append(`<p>Missing required items: ${matchingPromptResults.fail.missing.toString()}.</p>`);
+              _this.Display.append(`<p>Missing required items: ${matchingPromptResults.fail.missing.toString()}.</p>
+                                    <p>${_this.getRoom(_this.Player.currentRoom).getText}</p>`);
               return;
             }
           }
@@ -126,8 +128,7 @@ export default class Game {
           // Player didn't say any keywords that triggered any of the current room prompts
           _this.Display.show(`<p>No actions could be done from: "${message}". Try something else, or be
                               more specific about what you're doing.</p>
-          ${_this.getRoom(_this.Player.currentRoom).getText}
-        `);
+                              <p>${_this.getRoom(_this.Player.currentRoom).getText}</p>`);
         }
       });
     } else {
