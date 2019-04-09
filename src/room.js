@@ -20,16 +20,16 @@ export default class Room {
   enter(items = []) {
     let resultText = '';
     let metAllRequirements = true; // Can we enter the room?
-    // The room is not accessible by default
+    // The room is not accessible by default if we have more than one requirement (item)
     if (this.requirements > 0) {
       if (items.length === 0) {
         metAllRequirements = false;
-        // Return missing requirement messages
+        // Append missing requirement messages
         this.requirements.forEach(function (requirement) {
           resultText += `${requirement.failText}. `;
         });
       } else {
-        // Check the room's requirements for matching items
+        // Check the room's requirements against items to see if they're all found
         this.requirements.forEach(function (requirement) {
           let found = false;
           this.items.forEach(function (item) {
@@ -43,15 +43,17 @@ export default class Room {
             resultText += requirement.failText;  
           }
         });
+        // If all item requirements have been found, return room text
         if (metAllRequirements === true) {
           resultText = this.getText;
         }
       }
+      // No items required to enter the room, return room text
     } else {
       resultText = this.getText;
     }
-    // Return text with resultTexts and whether or not room could be entered
+    // Return resulting text and whether or not room could be entered
     return [resultText, metAllRequirements];
   }
-
 }
+

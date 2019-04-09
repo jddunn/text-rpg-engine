@@ -1,27 +1,43 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 const game = require('./text-rpg-engine');
 
-const newRoom = game.addRoom('Beginning', 'This is the beginning room');
-const newRoom2 = game.addRoom('SecondRoom', 'You did it! You won!');
+// Add a room (by default will be beginning room since it was first added)
+const startRoom = game.addRoom('Beginning', 'This is the beginning room');
+// Add a second room (by default will be winning room since it was added last)
+const endRoom = game.addRoom('SecondRoom', 'You did it! You won!');
+// Add required item to room
+endRoom.requirements.push('accessKey');
 
-newRoom2.requirements = ['note'];
+// Add room prompts
+startRoom.addPrompt(
+  // name of prompt (required)
+  'go right',
+  // keywords that will activate prompt (required)
+  ['go right', 'move right', 'open right', 'enter right', 'door right', 'right door'],
+  // results of prompt
+  {
+    // successful prompt result text (required)
+    'successText': 'You enter in the access code "14052" and successfully open the door.',
+    // failed prompt result text (optional)
+    'failText': 'The door is locked with an access code!',
+    // room to enter as result of prompt (optional)
+    'roomToEnter': 'SecondRoom',
+    // items added to inventory after successful prompt result (optional)
+    'itemsGiven': 'trophy'
+  }, 
+  // required items to successfully do prompt
+  ['accessKey']
+);
 
-newRoom.addPrompt('look', ['look room', 'look at room', 'search room', 'examine room', 'look in room'],
+startRoom.addPrompt(
+  'look',
+  ['look room', 'look at room', 'search room', 'examine room', 'look in'],
   {
     'successText': 'You see a room with a door to the right and a statue in the middle.'
   }
 );
 
-newRoom.addPrompt('go right', ['go right', 'move right', 'open right'],
-  {
-    'successText': 'You enter in the access code "14052" and successfully open the door.',
-    'failText': 'The door is locked with an access code!',
-    'roomToEnter': 'SecondRoom'
-  }, 
-  ['accessKey']
-);
-
-newRoom.addPrompt('get statue', ['get statue', 'pick up statue', 'take statue', 'pick statue up'], 
+startRoom.addPrompt('get statue', ['get statue', 'pick up statue', 'take statue', 'pick statue'], 
   {
     'successText': `You pick up the statue. It feels heavy in your hands, and there's something hanging off
                     the bottom.`,
@@ -29,7 +45,7 @@ newRoom.addPrompt('get statue', ['get statue', 'pick up statue', 'take statue', 
   }
 );
 
-newRoom.addPrompt('look statue', ['rotate statue', 'examine statue', 'look statue', 'check statue', 'look at statue'], 
+startRoom.addPrompt('rotate statue', ['rotate statue', 'rotate the statue'], 
   {
     'successText': 'You take the note from the bottom of the statue.',
     'failText': 'You have no statue to look at!',
@@ -38,7 +54,9 @@ newRoom.addPrompt('look statue', ['rotate statue', 'examine statue', 'look statu
   ['statue']
 );
 
-newRoom.addPrompt('look', ['look at note', 'examine note', 'take note'],
+startRoom.addPrompt(
+  'look',
+  ['look at note', 'examine note', 'take note', 'get note', 'check note', 'read note', 'look note'],
   {
     'successText': 'You look at the note and find an access code: "14052."',
     'failText': 'You have no note to look at!',
@@ -382,7 +400,7 @@ function () {
               foundPrompt = true; // If player succeeded in prompt action
 
               if ('success' in matchingPromptResults) {
-                _this.Display.show(matchingPromptResults.success.successText); // Get items from prompt if any are returned and add them to inventory
+                _this.Display.show("<p>".concat(matchingPromptResults.success.successText, "</p>")); // Get items from prompt if any are returned and add them to inventory
 
 
                 if (matchingPromptResults.success.itemsGiven !== undefined) {
@@ -401,16 +419,15 @@ function () {
                   enterRoomResultText = _this$Player$enterRoo2[0];
                   enterRoomResultSuccess = _this$Player$enterRoo2[1];
 
-                  // Check to see if player entered winning room
-                  if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
-                    if (enterRoomResultSuccess) {
+                  _this.Display.append("<p>".concat(enterRoomResultText, "</p>"));
+
+                  if (enterRoomResultSuccess) {
+                    // Check to see if player entered winning room
+                    if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
                       _this.win();
-                    } else {// Player didn't win yet (a required item is not in inventory)
                     }
-                  } // Show result of room entrance
-
-
-                  _this.Display.append(enterRoomResultText);
+                  } else {// Player could not enter room (missing required items in inventory)
+                  }
                 }
               } // Player failed to do prompt (missing item requirement)
 
@@ -454,7 +471,6 @@ function () {
       // Show final room text (win text)
       for (var i = 0; i < this.rooms.length; i++) {
         if (this.rooms[i].name === this.endRoom) {
-          this.Display.append("<p>".concat(this.rooms[i].getText, "</p>"));
           this.Display.append('<p>Game end.</p>');
           break;
         }
@@ -759,12 +775,12 @@ function () {
       return v.toLowerCase();
     }); // Results that occur when this prompt is successfully triggered; 
     // the result keys comprise of “successText” (required), "failText" (optional),
-    // “itemsRequired” (optional), // and “roomToEnter"” 
+    // “itemsRequired” (optional), and “roomToEnter” (optional)
 
     this.results = results; // Any prerequisite items needed to do the prompt?
 
     this.requirements = requirements;
-  } // Check if input message matches any prompt keywords
+  } // Check if input message matches any prompt keywords and return results
 
 
   _createClass(Prompt, [{
@@ -788,26 +804,28 @@ function () {
             missingRequirements.push(requirement);
           }
         });
-      } // Return fail message with missing item requirements
-      // If we have all our item requirements, check the user's message
-      // to see if we find any matching keywords
+      } // Once we check to see if the player's missing any items,
+      // parse the input for matching keywords to the prompt
 
 
       this.keywords.forEach(function (keyword) {
         if (message.includes(keyword.toLowerCase())) {
           foundKeyword = true;
         }
-      }); // Keywords have been matched from the user input, so return results of prompt
+      }); // If any keywords have been matched from the user input
 
       if (foundKeyword) {
+        // If there are any missing item requirements
         if (missingRequirements.length > 0) {
+          // Prompt fails; return missing items and failText
           return {
             'fail': {
               'missing': missingRequirements,
               'failText': this.results.failText
             }
           };
-        }
+        } // Prompt succeeds; return results of the prompt
+
 
         return {
           'success': this.results
@@ -885,17 +903,17 @@ function () {
       var items = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
       var resultText = '';
       var metAllRequirements = true; // Can we enter the room?
-      // The room is not accessible by default
+      // The room is not accessible by default if we have more than one requirement (item)
 
       if (this.requirements > 0) {
         if (items.length === 0) {
-          metAllRequirements = false; // Return missing requirement messages
+          metAllRequirements = false; // Append missing requirement messages
 
           this.requirements.forEach(function (requirement) {
             resultText += "".concat(requirement.failText, ". ");
           });
         } else {
-          // Check the room's requirements for matching items
+          // Check the room's requirements against items to see if they're all found
           this.requirements.forEach(function (requirement) {
             var found = false;
             this.items.forEach(function (item) {
@@ -909,15 +927,16 @@ function () {
 
               resultText += requirement.failText;
             }
-          });
+          }); // If all item requirements have been found, return room text
 
           if (metAllRequirements === true) {
             resultText = this.getText;
           }
-        }
+        } // No items required to enter the room, return room text
+
       } else {
         resultText = this.getText;
-      } // Return text with resultTexts and whether or not room could be entered
+      } // Return resulting text and whether or not room could be entered
 
 
       return [resultText, metAllRequirements];

@@ -91,7 +91,7 @@ export default class Game {
             foundPrompt = true;
             // If player succeeded in prompt action
             if ('success' in matchingPromptResults) {
-              _this.Display.show(matchingPromptResults.success.successText);
+              _this.Display.show(`<p>${matchingPromptResults.success.successText}</p>`);
               // Get items from prompt if any are returned and add them to inventory
               if (matchingPromptResults.success.itemsGiven !== undefined) {
                 _this.Player.inventory.addItems(matchingPromptResults.success.itemsGiven);
@@ -103,7 +103,7 @@ export default class Game {
                 // Check to see if player can successfully enter the room (given the inventory / room requirements)
                 [enterRoomResultText, enterRoomResultSuccess] = 
                                   _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
-                _this.Display.append(enterRoomResultText);
+                _this.Display.append(`<p>${enterRoomResultText}</p>`);
                 if (enterRoomResultSuccess) {
                   // Check to see if player entered winning room
                   if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
@@ -152,7 +152,6 @@ export default class Game {
     // Show final room text (win text)
     for (let i = 0; i < this.rooms.length; i++) {
       if (this.rooms[i].name === this.endRoom) {
-        this.Display.append(`<p>${this.rooms[i].getText}</p>`);
         this.Display.append('<p>Game end.</p>');
         break;
       }
