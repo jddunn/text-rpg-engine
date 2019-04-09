@@ -6,7 +6,7 @@ const newRoom2 = game.addRoom('SecondRoom', 'You did it! You won!');
 
 newRoom2.requirements = ['note'];
 
-newRoom.addPrompt('look', ['look room', 'look at room', 'search room', 'examine room'],
+newRoom.addPrompt('look', ['look room', 'look at room', 'search room', 'examine room', 'look in room'],
   {
     'successText': 'You see a room with a door to the right and a statue in the middle.'
   }
