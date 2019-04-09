@@ -104,14 +104,13 @@ export default class Game {
                 [enterRoomResultText, enterRoomResultSuccess] = 
                       _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
                 // Check to see if player entered winning room
-                if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
-                  if (enterRoomResultSuccess) {
+                if (enterRoomResultSuccess) {
+                  if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
                     _this.win();
-                  } else {
-                    // Player didn't win yet (a required item is not in inventory)
                   }
+                } else {
+                  // Player could not enter room
                 }
-                // Show result of room entrance
                 _this.Display.append(enterRoomResultText);
               }
             }

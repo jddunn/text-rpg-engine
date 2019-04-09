@@ -204,7 +204,8 @@ function () {
         document.getElementById(this.elementId).innerHTML = html;
         this.html = html;
       }
-    }
+    } // Append HTML content to display screen
+
   }, {
     key: "append",
     value: function append(html) {
@@ -281,12 +282,9 @@ function () {
 
     this.rooms = rooms; // All the rooms in our game
 
-    this.items = items; // All the items in our game
-
     this.startRoom = startRoom; // Which room will the player start in
 
-    this.endRoom = endRoom; // Which room 
-    // TODO: Allow players to give their characters their own names later
+    this.endRoom = endRoom; // Which room is the winning / game end
 
     this.Player = new _player.default(startRoom = this.startRoom);
   }
@@ -296,12 +294,14 @@ function () {
     value: function init() {
       var displayText;
       console.log('Initialized game from: ' + this.datapath); // this.loadData(this.dataPath); // TODO: Make games load from JSON data
+      // If game wasn't initialized with a startRoom, set it to the first room 
 
       if (this.startRoom === '' && this.rooms.length > 0) {
         this.startRoom = this.rooms[0].name;
         this.Player.startRoom = this.startRoom;
         this.Player.currentRoom = this.Player.startRoom;
-      }
+      } // If game wasn't initialized with a endRoom, set it to the last room
+
 
       if (this.endRoom === '' && this.rooms.length > 1) {
         this.endRoom = this.rooms[this.rooms.length - 1].name;
@@ -338,7 +338,8 @@ function () {
       });
       this.rooms = newRooms;
       return this.rooms;
-    }
+    } // Returns room object (properties) given the name
+
   }, {
     key: "getRoom",
     value: function getRoom(roomName) {
@@ -377,20 +378,21 @@ function () {
             var matchingPromptResults = prompt.matchKeywords(message, _this.Player.inventory.items); // If we get a matching result back
 
             if (matchingPromptResults !== null) {
+              // This prompt has keywords that match the user's input
               foundPrompt = true; // If player succeeded in prompt action
 
               if ('success' in matchingPromptResults) {
-                _this.Display.show(matchingPromptResults.success.successText); // Get items from prompt if any are found
+                _this.Display.show(matchingPromptResults.success.successText); // Get items from prompt if any are returned and add them to inventory
 
 
                 if (matchingPromptResults.success.itemsGiven !== undefined) {
                   _this.Player.inventory.addItems(matchingPromptResults.success.itemsGiven);
-                } // Successful prompt leads to new room entrance (if defined in prompt)
+                } // If the prompt success result includes entering a new room..
 
 
                 if (matchingPromptResults.success.roomToEnter !== undefined) {
                   var enterRoomResultSuccess;
-                  var enterRoomResultText;
+                  var enterRoomResultText; // Check to see if player can successfully enter the room (given the inventory / room requirements)
 
                   var _this$Player$enterRoo = _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
 
@@ -399,16 +401,16 @@ function () {
                   enterRoomResultText = _this$Player$enterRoo2[0];
                   enterRoomResultSuccess = _this$Player$enterRoo2[1];
 
-                  // Check to see if player's won
+                  // Check to see if player entered winning room
                   if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
                     if (enterRoomResultSuccess) {
-                      // Successfully entered room to win game
                       _this.win();
-                    } else {
-                      // Display results text (fail to enter winning room)
-                      _this.Display.append(enterRoomResultText);
+                    } else {// Player didn't win yet (a required item is not in inventory)
                     }
-                  }
+                  } // Show result of room entrance
+
+
+                  _this.Display.append(enterRoomResultText);
                 }
               } // Player failed to do prompt (missing item requirement)
 
@@ -416,7 +418,7 @@ function () {
               if ('fail' in matchingPromptResults) {
                 _this.Display.show("".concat(matchingPromptResults.fail.failText));
 
-                _this.Display.append("<p>Missing required items: ".concat(matchingPromptResults.fail.missing.toString(), ".</p>"));
+                _this.Display.append("<p>Missing required items: ".concat(matchingPromptResults.fail.missing.toString(), ".</p>\n                                    <p>").concat(_this.getRoom(_this.Player.currentRoom).getText, "</p>"));
 
                 return;
               }
@@ -425,7 +427,7 @@ function () {
 
           if (foundPrompt === false) {
             // Player didn't say any keywords that triggered any of the current room prompts
-            _this.Display.show("<p>No actions could be done from: \"".concat(message, "\". Try something else.</p>\n          ").concat(_this.getRoom(_this.Player.currentRoom).getText, "\n        "));
+            _this.Display.show("<p>No actions could be done from: \"".concat(message, "\". Try something else, or be\n                              more specific about what you're doing.</p>\n                              <p>").concat(_this.getRoom(_this.Player.currentRoom).getText, "</p>"));
           }
         });
       } else {
@@ -454,6 +456,7 @@ function () {
         if (this.rooms[i].name === this.endRoom) {
           this.Display.append("<p>".concat(this.rooms[i].getText, "</p>"));
           this.Display.append('<p>Game end.</p>');
+          break;
         }
       } // Disable any more user input after winning
 
