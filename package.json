@@ -1,11 +1,11 @@
 {
   "name": "text-rpg-engine",
-  "version": "0.1.0",
-  "description": "Library to create text adventures / interactive fiction",
-  "main": "lib/webpack-library-starter.js",
+  "version": "1.0.0",
+  "description": "Library in ES6 to create text adventures / interactive fiction with custom user interactions",
+  "main": "lib/text-rpg-engine.js",
   "scripts": {
     "build": "webpack --env dev && webpack --env build",
-    "build:example": "browserify example/main.js -o example/bundle.js",
+    "build:example": "browserify -t brfs example/main.js -o example/bundle.js",
     "dev": "webpack --progress --colors --watch --env dev"
   },
   "repository": {
@@ -15,6 +15,7 @@
     "interactive",
     "fiction",
     "text",
+    "adventure",
     "RPG",
     "game"
   ],
@@ -43,5 +44,8 @@
     "webpack": "^4.12.2",
     "webpack-cli": "^3.0.8",
     "yargs": "^10.0.3"
+  },
+  "dependencies": {
+    "brfs": "^2.0.2"
   }
 }

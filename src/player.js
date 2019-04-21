@@ -1,3 +1,4 @@
+'use strict';
 import Inventory from './inventory';
 
 export default class Player {
@@ -13,14 +14,15 @@ export default class Player {
     }
     this.startRoom = startRoom;
   }
-  
+
   enterRoom(room) {
     const roomResult = room.enter(this.inventory.items);
+
     if (roomResult[1] === false) {
       // Player did not have required items to enter the room
     } else {
       // Entered room successfully
-      this.currentRoom = room.name; 
+      this.currentRoom = room.name;
     }
     // Return results text and whether or not player successfully entered room
     return [roomResult[0], roomResult[1]];
@@ -36,4 +38,3 @@ export default class Player {
     return this.inventory;
   }
 }
-  

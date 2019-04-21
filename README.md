@@ -1,4 +1,4 @@
-# Webpack library starter
+# Text RPG Engine
 
 ## Building the library
 
@@ -9,8 +9,6 @@
 
 * `yarn build` or `npm run build` - produces production version of your library under the `lib` folder
 * `yarn dev` or `npm run dev` - produces development version of your library and runs a watcher
-
-## Readings
 
 ## Credits
 

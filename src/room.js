@@ -1,3 +1,4 @@
+'use strict';
 import Prompt from './prompt';
 
 export default class Room {
@@ -12,6 +13,7 @@ export default class Room {
   // Add new prompt / interaction to room
   addPrompt(name, keywords, results, requirements) {
     const prompt = new Prompt(name, keywords, results, requirements);
+
     this.prompts.push(prompt);
     return this.prompts;
   }
@@ -20,6 +22,7 @@ export default class Room {
   enter(items = []) {
     let resultText = '';
     let metAllRequirements = true; // Can we enter the room?
+
     // The room is not accessible by default if we have more than one requirement (item)
     if (this.requirements > 0) {
       if (items.length === 0) {
@@ -32,6 +35,7 @@ export default class Room {
         // Check the room's requirements against items to see if they're all found
         this.requirements.forEach(function (requirement) {
           let found = false;
+
           this.items.forEach(function (item) {
             if (item === requirement) {
               found = true;
@@ -40,7 +44,7 @@ export default class Room {
           if (found === false) {
             metAllRequirements = false;
             // Return fail messages for missing requirements
-            resultText += requirement.failText;  
+            resultText += requirement.failText;
           }
         });
         // If all item requirements have been found, return room text

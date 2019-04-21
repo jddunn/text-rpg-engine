@@ -1,3 +1,4 @@
+'use strict';
 export default class Input {
 
   constructor(disabled = false, value = '', elementId = 'input') {
@@ -22,3 +23,4 @@ export default class Input {
     this.value = value;
   }
 }
+

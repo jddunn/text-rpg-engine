@@ -1,3 +1,4 @@
+'use strict';
 import Display from './display';
 import Input from './input';
 import Player from './player';
@@ -9,26 +10,24 @@ export default class Game {
   constructor(datapath = '', rooms = [], items = [], startRoom = '', endRoom = '') {
     this.Display = new Display();
     this.Input = new Input();
-    this.datapath = datapath; // TODO: Be able to have game initialize data from JSON file
     this.rooms = rooms; // All the rooms in our game
     this.startRoom = startRoom; // Which room will the player start in
     this.endRoom = endRoom; // Which room is the winning / game end
-    this.Player = new Player(startRoom = this.startRoom); 
+    this.Player = new Player(startRoom = this.startRoom);
   }
 
   init() {
     let displayText;
-    console.log('Initialized game from: ' + this.datapath);
-    // this.loadData(this.dataPath); // TODO: Make games load from JSON data
-    // If game wasn't initialized with a startRoom, set it to the first room 
+
+    // If game wasn't initialized with a startRoom, set it to the first room
     if (this.startRoom === '' && this.rooms.length > 0) {
-      this.startRoom = this.rooms[0].name; 
+      this.startRoom = this.rooms[0].name;
       this.Player.startRoom = this.startRoom;
       this.Player.currentRoom = this.Player.startRoom;
     }
     // If game wasn't initialized with a endRoom, set it to the last room
     if (this.endRoom === '' && this.rooms.length > 1) {
-      this.endRoom = this.rooms[this.rooms.length - 1].name;      
+      this.endRoom = this.rooms[this.rooms.length - 1].name;
     }
     for (let i = 0; i < this.rooms.length; i++) {
       if (this.rooms[i].name === this.startRoom) {
@@ -45,14 +44,16 @@ export default class Game {
   // Manage rooms
   addRoom(name, getText, prompts = [], requirements = []) {
     let roomObj = new Room(name, getText, prompts, requirements);
+
     this.rooms.push(roomObj);
     return roomObj;
   }
 
   dropRoom(roomName) {
-    let newRooms = this.rooms.filter(function(room) {
+    let newRooms = this.rooms.filter(function (room) {
       return room.name !== roomName;
     });
+
     this.rooms = newRooms;
     return this.rooms;
   }
@@ -60,6 +61,7 @@ export default class Game {
   // Returns room object (properties) given the name
   getRoom(roomName) {
     const room = this.rooms.find(x => x.name === roomName);
+
     return room;
   }
 
@@ -77,14 +79,17 @@ export default class Game {
     }
     const _this = this;
     const currRoom = _this.getRoom(_this.Player.currentRoom);
+
     // Do we have actions that we can do in the room?
     if (typeof currRoom.prompts !== undefined) {
       // Check every prompt action to see if it matches our input keywords
       // For now just get the first matching prompt and do that
       let foundPrompt = false;
+
       currRoom.prompts.forEach(function (prompt) {
         if (foundPrompt === false) {
           const matchingPromptResults = prompt.matchKeywords(message, _this.Player.inventory.items);
+
           // If we get a matching result back
           if (matchingPromptResults !== null) {
             // This prompt has keywords that match the user's input
@@ -99,9 +104,10 @@ export default class Game {
               // If the prompt success result includes entering a new room..
               if (matchingPromptResults.success.roomToEnter !== undefined) {
                 let enterRoomResultSuccess;
-                let enterRoomResultText;           
+                let enterRoomResultText;
+
                 // Check to see if player can successfully enter the room (given the inventory / room requirements)
-                [enterRoomResultText, enterRoomResultSuccess] = 
+                [enterRoomResultText, enterRoomResultSuccess] =
                                   _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
                 _this.Display.append(`<p>${enterRoomResultText}</p>`);
                 if (enterRoomResultSuccess) {
@@ -166,6 +172,7 @@ export default class Game {
     this.Player.inventory = new Inventory();
     this.Player.currentRoom = this.startRoom;
     const room = this.getRoom(this.startRoom);
+
     this.Display.show(room.getText);
     this.Input.enable();
   }

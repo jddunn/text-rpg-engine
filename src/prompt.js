@@ -1,27 +1,30 @@
+'use strict';
 export default class Prompt {
-   
+
   constructor(name = '', keywords = [], results = {}, requirements = []) {
     this.name = name;
     // Keywords that can trigger the prompt (make all lower-case by default)
-    this.keywords = keywords.map(function(v) { return v.toLowerCase();}); 
-    // Results that occur when this prompt is successfully triggered; 
+    this.keywords = keywords.map(function (v) { return v.toLowerCase();});
+    // Results that occur when this prompt is successfully triggered;
     // the result keys comprise of “successText” (required), "failText" (optional),
     // “itemsRequired” (optional), and “roomToEnter” (optional)
-    this.results = results; 
+    this.results = results;
     // Any prerequisite items needed to do the prompt?
-    this.requirements = requirements; 
+    this.requirements = requirements;
   }
 
   // Check if input message matches any prompt keywords and return results
   matchKeywords(message, items = []) {
     let foundKeyword = false;
     let missingRequirements = [];
+
     // If we have any item requirements
     if (this.requirements.length > 0) {
       // Check all the requirements against the items passed
-      this.requirements.forEach(function(requirement) {
+      this.requirements.forEach(function (requirement) {
         let foundRequirement = false;
-        items.forEach(function(item) {
+
+        items.forEach(function (item) {
           if (item === requirement) {
             foundRequirement = true;
           }
@@ -34,7 +37,7 @@ export default class Prompt {
     }
     // Once we check to see if the player's missing any items,
     // parse the input for matching keywords to the prompt
-    this.keywords.forEach(function(keyword) {
+    this.keywords.forEach(function (keyword) {
       if (message.includes(keyword.toLowerCase())) {
         foundKeyword = true;
       }
