@@ -61,14 +61,13 @@ const game = require('text-rpg-engine');
 const startRoom = game.addRoom('Beginning', 'This is the beginning room');
 // Add a second room (by default will be winning room since it was added last)
 const endRoom = game.addRoom('SecondRoom', 'You did it! You won!');
-// Or we could do this..
+// Or we could do this, to manually set which rooms to start / end
 // game.startRoom = 'Beginning'; // Set beginning room programatically
 // game.endRoom = 'SecondRoom'; // Set end room programatically
 
 // Add required item to room
 endRoom.requirements.push('accessKey');
 
-// Add room prompts
 startRoom.addPrompt(
   // name of prompt (required)
   'go right',
@@ -78,14 +77,14 @@ startRoom.addPrompt(
   {
     // successful prompt result text (required)
     'successText': 'You enter in the access code "14052" and successfully open the door.',
-    // failed prompt result text (optional)
+    // failed prompt result text (optional; a default fail text is displayed when a prompt fails)
     'failText': 'The door is locked with an access code!',
     // room to enter as result of prompt (optional)
     'roomToEnter': 'SecondRoom',
     // items added to inventory after successful prompt result (optional)
     'itemsGiven': 'trophy'
   },
-  // required items to successfully do prompt
+  // required items to successfully do prompt (optional)
   ['accessKey']
 );
 
