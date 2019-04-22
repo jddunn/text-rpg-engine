@@ -32,6 +32,8 @@ Animated example demo
 ## Using the library API to create a game
 
 ```
+const game = require('./text-rpg-engine.min');
+
 // Add a room (by default will be beginning room since it was first added)
 const startRoom = game.addRoom('Beginning', 'This is the beginning room');
 // Add a second room (by default will be winning room since it was added last)
