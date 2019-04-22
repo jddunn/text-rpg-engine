@@ -58,6 +58,28 @@ export default class Game {
       }
       _this.addRoom(room.name, room.getText, roomPrompts, roomRequirements);
     });
+
+    if (gameData.startRoom !== undefined) {
+      this.startRoom = gameData.startRoom;
+      this.Player.startRoom = gameData.startRoom;
+    }
+    if (gameData.endRoom !== undefined) {
+      this.endRoom = gameData.endRoom;
+    }
+    // If game wasn't initialized with a startRoom, set it to the first room
+    if (this.startRoom === '' || this.startRoom === undefined) {
+      if (this.rooms.length > 0) {
+        this.startRoom = this.rooms[0].name;
+        this.Player.startRoom = this.startRoom;
+        this.Player.currentRoom = this.Player.startRoom;
+      }
+    }
+    // If game wasn't initialized with a endRoom, set it to the last room
+    if (this.endRoom === '' && this.endRoom === undefined) {
+      if (this.rooms.length > 1) {
+        this.endRoom = this.rooms[this.rooms.length - 1].name;
+      }
+    }
   }
 
   // Manage rooms

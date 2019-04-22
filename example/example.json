@@ -1,5 +1,7 @@
 {
     "game": {
+        "startRoom": "Beginning",
+        "endRoom": "SecondRoom",
         "rooms": 
             [
                 {
