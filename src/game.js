@@ -91,7 +91,7 @@ export default class Game {
       }
     }
     // If game wasn't initialized with a endRoom, set it to the last room
-    if (this.endRoom === '' && this.endRoom === undefined) {
+    if (this.endRoom === '' || this.endRoom === undefined) {
       if (this.rooms.length > 1) {
         this.endRoom = this.rooms[this.rooms.length - 1].name;
       }
