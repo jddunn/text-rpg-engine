@@ -56,10 +56,14 @@ ANY changes you make in your client JS script, e.g. the `main.js` file, you will
 ```
 const game = require('text-rpg-engine');
 
+// Below code uses library API to programmatically build games
 // Add a room (by default will be beginning room since it was first added)
 const startRoom = game.addRoom('Beginning', 'This is the beginning room');
 // Add a second room (by default will be winning room since it was added last)
 const endRoom = game.addRoom('SecondRoom', 'You did it! You won!');
+// Or we could do this..
+// game.startRoom = 'Beginning'; // Set beginning room programatically
+// game.endRoom = 'SecondRoom'; // Set end room programatically
 
 // Add required item to room
 endRoom.requirements.push('accessKey');

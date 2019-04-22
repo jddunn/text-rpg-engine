@@ -27,8 +27,10 @@ console.log(game);
 // Below code uses library API to programmatically build games
 // // Add a room (by default will be beginning room since it was first added)
 // const startRoom = game.addRoom('Beginning', 'This is the beginning room');
+// // game.startRoom = 'Beginning'; // Set beginning room programatically
 // // Add a second room (by default will be winning room since it was added last)
 // const endRoom = game.addRoom('SecondRoom', 'You did it! You won!');
+// // game.endRoom = 'SecondRoom'; // Set end room programatically
 
 // // Add required item to room
 // endRoom.requirements.push('accessKey');
