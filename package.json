@@ -9,7 +9,8 @@
     "dev": "webpack --progress --colors --watch --env dev"
   },
   "repository": {
-    "type": "git"
+    "type": "git",
+    "url": "https://github.com/jddunn/text-rpg-engine.git"
   },
   "keywords": [
     "interactive",
