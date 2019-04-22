@@ -9,9 +9,25 @@ export default class Game {
   constructor(rooms = [], items = [], startRoom = '', endRoom = '') {
     this.Display = new Display();
     this.Input = new Input();
-    this.rooms = rooms; // All the rooms in our game
+    this.rooms = []; // All the rooms in our game
+    const _this = this;
+
+    rooms.forEach(function (room) {
+      _this.addRoom(room.name, room.getText, room.prompts, room.requirements);
+    });
     this.startRoom = startRoom; // Which room will the player start in
     this.endRoom = endRoom; // Which room is the winning / game end
+
+    // If game wasn't initialized with a startRoom, set it to the first room
+    if (this.startRoom === '' && this.rooms.length > 0) {
+      this.startRoom = this.rooms[0].name;
+      this.Player.startRoom = this.startRoom;
+      this.Player.currentRoom = this.Player.startRoom;
+    }
+    // If game wasn't initialized with a endRoom, set it to the last room
+    if (this.endRoom === '' && this.rooms.length > 1) {
+      this.endRoom = this.rooms[this.rooms.length - 1].name;
+    }
     this.Player = new Player(startRoom = this.startRoom);
   }
 
