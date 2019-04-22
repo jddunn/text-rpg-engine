@@ -11,6 +11,7 @@ Animated example demo
 ## Features
 
 * Games can be programmatically built with API or populated with data from a static JSON file
+* No server required to play games (JS files are bundled and transpiled with Browserify)
 * Player can move through `rooms` (rooms can have `item` requirements)
 * Inventory system
 * Environment and item interactions through `prompts`
@@ -21,20 +22,34 @@ Animated example demo
 * User can only perform one prompt / command at a time
 * There are no "common" prompt interactions; everything must be defined and repeated throughout different rooms if necessary
 
+## Dependencies
+
+* Webpack
+* Babel
+* Browserify
+
 ## Getting the library (from NPM)
 
 * `npm install text-rpg-engine`
 
 ## Building the library (from source)
 
-* `npm install` to get the project's dependencies
-* `npm run build` to produce minified version of your library.
+* `npm install` to get the project's (text-rpg-engine's) dependencies
+* `npm run build` to produce minified version of the library.
 
 ## Library package scripts
 
-* `npm run build` - produces production version of your library under the `lib` folder
-* `npm run dev` - produces development version of your library and runs a watcher
+* `npm run build` - produces production version of the library under the `lib` folder
+* `npm run dev` - produces development version of the library and runs a watcher
 * `npm run build:example` - produces bundled example app (with Browserify) from /example/main.js
+
+## Build process
+
+If you make any changes to the library files (anything inside /src), you will have to run `npm run build` to produce a new production version of the library. 
+
+ANY changes you make in your client JS script, e.g. the `main.js` file, you will have to transpile the code again with Browserify. For example, if you make any changes for the example game, you will have to run this command inside the directory.
+
+`browserify -t brfs main.js -o bundle.js`
 
 ## Using the library API to create a game
 
