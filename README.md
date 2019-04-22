@@ -2,6 +2,8 @@
 
 JS library in ES6 to create text adventures, or works of interactive fiction, with the ability to craft custom player interactions through "prompts", which comprise a game's commands. Lightweight (~51kb minified) and small (~400 lines of code).
 
+`npm install text-rpg-engine`
+
 Animated example demo
 
 <img src="screenshots/text-rpg-demo-full.gif" height="243" alt="Text RPG Engine - Example Demo"/>
