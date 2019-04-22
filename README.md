@@ -4,7 +4,7 @@ JS library in ES6 to create text adventures, or works of interactive fiction, wi
 
 Animated example demo
 
-<img src="screenshots/text-rpg-demo-full.gif" height="500" alt="Text RPG Engine - Example Demo"/>
+<img src="screenshots/text-rpg-demo-full.gif" height="320" alt="Text RPG Engine - Example Demo"/>
 
 ## Features
 
