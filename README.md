@@ -18,12 +18,16 @@ Animated example demo
 * User can only perform one prompt / command at a time
 * There are no "common" prompt interactions; everything must be defined and repeated throughout different rooms if necessary
 
-## Building the library
+## Getting the library (from NPM)
+
+* `npm install text-rpg-engine`
+
+## Building the library (from source)
 
 * `npm install` to get the project's dependencies
 * `npm run build` to produce minified version of your library.
 
-## Scripts
+## Library package scripts
 
 * `npm run build` - produces production version of your library under the `lib` folder
 * `npm run dev` - produces development version of your library and runs a watcher
@@ -32,7 +36,7 @@ Animated example demo
 ## Using the library API to create a game
 
 ```
-const game = require('./text-rpg-engine.min');
+const game = require('text-rpg-engine');
 
 // Add a room (by default will be beginning room since it was first added)
 const startRoom = game.addRoom('Beginning', 'This is the beginning room');
@@ -110,7 +114,7 @@ game.init();
 ## Loading game data from a JSON file
 
 ```
-const game = require('./text-rpg-engine.min');
+const game = require('text-rpg-engine');
 
 const path = require('path');
 const fs = require('fs');
