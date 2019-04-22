@@ -10,6 +10,7 @@ Animated example demo
 
 ## Features
 
+* Games can be programmatically built with API or populated with data from a static JSON file
 * Player can move through `rooms` (rooms can have `item` requirements)
 * Inventory system
 * Environment and item interactions through `prompts`
