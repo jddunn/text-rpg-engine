@@ -1,4 +1,3 @@
-'use strict';
 import Display from './display';
 import Input from './input';
 import Player from './player';
@@ -7,7 +6,7 @@ import Inventory from './inventory';
 
 export default class Game {
 
-  constructor(datapath = '', rooms = [], items = [], startRoom = '', endRoom = '') {
+  constructor(rooms = [], items = [], startRoom = '', endRoom = '') {
     this.Display = new Display();
     this.Input = new Input();
     this.rooms = rooms; // All the rooms in our game
@@ -39,6 +38,26 @@ export default class Game {
       displayText = 'No starting room text found!';
     }
     this.Display.show(displayText);
+  }
+
+  // Loads game data from JSON object passed
+  loadData(gameData) {
+    const _this = this;
+
+    gameData.game.rooms.forEach(function (room) {
+      // console.log(room);
+      let roomPrompts = [];
+      let roomRequirements = [];
+
+      // Room prompts and requirements are optional so handle that
+      if (room.prompts !== undefined) {
+        roomPrompts = room.prompts;
+      }
+      if (room.requirements !== undefined) {
+        roomRequirements = room.requiurements;
+      }
+      _this.addRoom(room.name, room.getText, roomPrompts, roomRequirements);
+    });
   }
 
   // Manage rooms
@@ -87,47 +106,51 @@ export default class Game {
       let foundPrompt = false;
 
       currRoom.prompts.forEach(function (prompt) {
-        if (foundPrompt === false) {
-          const matchingPromptResults = prompt.matchKeywords(message, _this.Player.inventory.items);
+        try {
+          if (foundPrompt === false) {
+            const matchingPromptResults = prompt.matchKeywords(message, _this.Player.inventory.items);
 
-          // If we get a matching result back
-          if (matchingPromptResults !== null) {
-            // This prompt has keywords that match the user's input
-            foundPrompt = true;
-            // If player succeeded in prompt action
-            if ('success' in matchingPromptResults) {
-              _this.Display.show(`<p>${matchingPromptResults.success.successText}</p>`);
-              // Get items from prompt if any are returned and add them to inventory
-              if (matchingPromptResults.success.itemsGiven !== undefined) {
-                _this.Player.inventory.addItems(matchingPromptResults.success.itemsGiven);
-              }
-              // If the prompt success result includes entering a new room..
-              if (matchingPromptResults.success.roomToEnter !== undefined) {
-                let enterRoomResultSuccess;
-                let enterRoomResultText;
+            // If we get a matching result back
+            if (matchingPromptResults !== null) {
+              // This prompt has keywords that match the user's input
+              foundPrompt = true;
+              // If player succeeded in prompt action
+              if ('success' in matchingPromptResults) {
+                _this.Display.show(`<p>${matchingPromptResults.success.successText}</p>`);
+                // Get items from prompt if any are returned and add them to inventory
+                if (matchingPromptResults.success.itemsGiven !== undefined) {
+                  _this.Player.inventory.addItems(matchingPromptResults.success.itemsGiven);
+                }
+                // If the prompt success result includes entering a new room..
+                if (matchingPromptResults.success.roomToEnter !== undefined) {
+                  let enterRoomResultSuccess;
+                  let enterRoomResultText;
 
-                // Check to see if player can successfully enter the room (given the inventory / room requirements)
-                [enterRoomResultText, enterRoomResultSuccess] =
-                                  _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
-                _this.Display.append(`<p>${enterRoomResultText}</p>`);
-                if (enterRoomResultSuccess) {
-                  // Check to see if player entered winning room
-                  if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
-                    _this.win();
+                  // Check to see if player can successfully enter the room (given the inventory / room requirements)
+                  [enterRoomResultText, enterRoomResultSuccess] =
+                                    _this.Player.enterRoom(_this.getRoom(matchingPromptResults.success.roomToEnter));
+                  _this.Display.append(`<p>${enterRoomResultText}</p>`);
+                  if (enterRoomResultSuccess) {
+                    // Check to see if player entered winning room
+                    if (matchingPromptResults.success.roomToEnter === _this.endRoom) {
+                      _this.win();
+                    }
+                  } else {
+                    // Player could not enter room (missing required items in inventory)
                   }
-                } else {
-                  // Player could not enter room (missing required items in inventory)
                 }
               }
-            }
-            // Player failed to do prompt (missing item requirement)
-            if ('fail' in matchingPromptResults) {
-              _this.Display.show(`${matchingPromptResults.fail.failText}`);
-              _this.Display.append(`<p>Missing required items: ${matchingPromptResults.fail.missing.toString()}.</p>
-                                    <p>${_this.getRoom(_this.Player.currentRoom).getText}</p>`);
-              return;
+              // Player failed to do prompt (missing item requirement)
+              if ('fail' in matchingPromptResults) {
+                _this.Display.show(`${matchingPromptResults.fail.failText}`);
+                _this.Display.append(`<p>Missing required items: ${matchingPromptResults.fail.missing.toString()}.</p>
+                                      <p>${_this.getRoom(_this.Player.currentRoom).getText}</p>`);
+                return;
+              }
             }
           }
+        } catch (err) {
+          console.log(err);
         }
         if (foundPrompt === false) {
           // Player didn't say any keywords that triggered any of the current room prompts

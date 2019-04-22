@@ -1,4 +1,3 @@
-'use strict';
 import Inventory from './inventory';
 
 export default class Player {

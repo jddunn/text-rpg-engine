@@ -1,4 +1,3 @@
-'use strict';
 const game = require('./text-rpg-engine.min');
 
 const path = require('path');
@@ -14,22 +13,18 @@ document.getElementById('input').addEventListener('keypress', function (event) {
 });
 
 // Below code loads game data from static JSON file
-let data = fs.readFileSync(path.join(__dirname, './example.json'));
 
-try {
-  data = JSON.parse(data);
-} catch (err) {
-  console.error(err);
-}
+let data = JSON.parse(fs.readFileSync(path.join(__dirname, './example.json')));
 
-game.rooms = data.game.rooms;
+game.loadData(data);
 
 game.init();
+
 console.log(game);
+
 // End
 
 // Below code uses library API to programmatically build games
-
 // // Add a room (by default will be beginning room since it was first added)
 // const startRoom = game.addRoom('Beginning', 'This is the beginning room');
 // // Add a second room (by default will be winning room since it was added last)
@@ -67,7 +62,9 @@ console.log(game);
 //   }
 // );
 
-// startRoom.addPrompt('get statue', ['get statue', 'pick up statue', 'take statue', 'pick statue'],
+// startRoom.addPrompt(
+//   'get statue',
+//   ['get statue', 'pick up statue', 'take statue', 'pick statue'],
 //   {
 //     'successText': `You pick up the statue. It feels heavy in your hands, and there's something hanging off
 //                     the bottom.`,
@@ -75,7 +72,9 @@ console.log(game);
 //   }
 // );
 
-// startRoom.addPrompt('rotate statue', ['rotate statue', 'rotate the statue'],
+// startRoom.addPrompt(
+//   'rotate statue',
+//   ['rotate statue', 'rotate the statue'],
 //   {
 //     'successText': 'You take the note from the bottom of the statue.',
 //     'failText': 'You have no statue to look at!',

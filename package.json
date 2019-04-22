@@ -1,7 +1,7 @@
 {
   "name": "text-rpg-engine",
   "version": "1.0.0",
-  "description": "Library in ES6 to create text adventures / interactive fiction with custom user interactions",
+  "description": "Library to create text adventures / interactive fiction with custom user interactions",
   "main": "lib/text-rpg-engine.js",
   "scripts": {
     "build": "webpack --env dev && webpack --env build",

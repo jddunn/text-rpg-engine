@@ -1,4 +1,3 @@
-'use strict';
 import Prompt from './prompt';
 
 export default class Room {
@@ -6,7 +5,14 @@ export default class Room {
   constructor(name = '', getText = '', prompts = [], requirements = []) {
     this.name = name;
     this.getText = getText; // The text that is displayed when the room is entered
-    this.prompts = prompts; // What are the actions that we can do in this room?
+    // this.prompts = prompts; // What are the actions that we can do in this room?
+    const _this = this;
+
+    this.prompts = [];
+
+    prompts.forEach(function (prompt) {
+      _this.addPrompt(prompt.name, prompt.keywords, prompt.results, prompt.requirements);
+    });
     this.requirements = requirements; // Any requirements (items) needed to access the room
   }
 

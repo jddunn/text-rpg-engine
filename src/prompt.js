@@ -1,4 +1,3 @@
-'use strict';
 export default class Prompt {
 
   constructor(name = '', keywords = [], results = {}, requirements = []) {
